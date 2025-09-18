@@ -56,7 +56,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
-public class McpAsyncServer implements IMcpServerAsync {
+public class McpAsyncServer {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpAsyncServer.class);
     private final TypeRef<CallToolRequest> CALL_TOOL_REQUEST_TYPE_REF = new TypeRef<CallToolRequest>() {
     };
@@ -213,12 +213,10 @@ public class McpAsyncServer implements IMcpServerAsync {
                 );
     }
 
-    @Override
     public ServerCapabilities serverCapabilities() {
         return this.serverCapabilities;
     }
 
-    @Override
     public Implementation serverInfo() {
         return this.serverInfo;
     }
@@ -227,7 +225,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         this.protocolVersions = protocolVersions;
     }
 
-    @Override
     public Mono<Void> addTool(AsyncToolSpec toolSpec) {
         if (toolSpec == null) {
             return Mono.error(McpError.of("Tool specification must not be null"));
@@ -260,7 +257,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         });
     }
 
-    @Override
     public Mono<Void> removeTool(String toolName) {
         if (toolName == null) {
             return Mono.error(McpError.of("Tool name must not be null"));
@@ -282,17 +278,14 @@ public class McpAsyncServer implements IMcpServerAsync {
         });
     }
 
-    @Override
     public Mono<Void> notifyToolsListChanged() {
         return this.transportProvider.notifyClients(McpSchema.METHOD_NOTIFICATION_TOOLS_LIST_CHANGED, null);
     }
 
-    @Override
     public List<Tool> getToolList() {
         return this.toolSpecs.values().stream().map(AsyncToolSpec::tool).collect(Collectors.toList());
     }
 
-    @Override
     public Optional<AsyncToolSpec> getToolSpec(String toolName) {
         AsyncToolSpec specification = this.toolSpecs.get(toolName);
         if (specification == null) {
@@ -317,7 +310,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         };
     }
 
-    @Override
     public Mono<Void> addResource(AsyncResourceSpec resourceSpec) {
         if (resourceSpec == null) {
             return Mono.error(McpError.of("Resource specification must not be null"));
@@ -347,7 +339,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         });
     }
 
-    @Override
     public Mono<Void> removeResource(String resourceUri) {
         if (resourceUri == null) {
             return Mono.error(McpError.of("Resource URI must not be null"));
@@ -370,17 +361,14 @@ public class McpAsyncServer implements IMcpServerAsync {
         });
     }
 
-    @Override
     public Mono<Void> notifyResourcesListChanged() {
         return this.transportProvider.notifyClients(McpSchema.METHOD_NOTIFICATION_RESOURCES_LIST_CHANGED, null);
     }
 
-    @Override
     public Mono<Void> notifyResourcesUpdated(ResourcesUpdatedNotification resourcesUpdatedNotification) {
         return this.transportProvider.notifyClients(McpSchema.METHOD_NOTIFICATION_RESOURCES_UPDATED, resourcesUpdatedNotification);
     }
 
-    @Override
     public List<Resource> getResourceList() {
         return this.resourceSpecs.values()
                 .stream()
@@ -389,7 +377,6 @@ public class McpAsyncServer implements IMcpServerAsync {
                 .collect(Collectors.toList());
     }
 
-    @Override
     public List<ResourceTemplate> getResourceTemplateList() {
         List<ResourceTemplate> list = new ArrayList<>(this.resourceTemplates.values());
         List<ResourceTemplate> resourceTemplates = this.resourceSpecs.keySet()
@@ -406,7 +393,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         return list;
     }
 
-    @Override
     public Optional<AsyncResourceSpec> getResourceSpec(String resourceUri) {
         return this.resourceSpecs.values()
                 .stream()
@@ -436,7 +422,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         };
     }
 
-    @Override
     public Mono<Void> addPrompt(AsyncPromptSpec promptSpec) {
         if (promptSpec == null) {
             return Mono.error(McpError.of("Prompt specification must not be null"));
@@ -466,7 +451,6 @@ public class McpAsyncServer implements IMcpServerAsync {
         });
     }
 
-    @Override
     public Mono<Void> removePrompt(String promptName) {
         if (promptName == null) {
             return Mono.error(McpError.of("Prompt name must not be null"));
@@ -488,12 +472,10 @@ public class McpAsyncServer implements IMcpServerAsync {
         });
     }
 
-    @Override
     public Mono<Void> notifyPromptsListChanged() {
         return this.transportProvider.notifyClients(McpSchema.METHOD_NOTIFICATION_PROMPTS_LIST_CHANGED, null);
     }
 
-    @Override
     public List<Prompt> getPromptList() {
         return this.promptSpecs.values()
                 .stream()
@@ -501,7 +483,6 @@ public class McpAsyncServer implements IMcpServerAsync {
                 .collect(Collectors.toList());
     }
 
-    @Override
     public Optional<AsyncPromptSpec> getPromptSpec(String promptName) {
         AsyncPromptSpec specification = this.promptSpecs.get(promptName);
         if (specification == null) {
@@ -618,12 +599,10 @@ public class McpAsyncServer implements IMcpServerAsync {
         return new CompleteRequest(ref, argument, meta, context);
     }
 
-    @Override
     public Mono<Void> closeGracefully() {
         return this.transportProvider.closeGracefully();
     }
 
-    @Override
     public void close() {
         this.transportProvider.close();
     }
