@@ -1,2 +1,2 @@
 # java8-mcp
-io.modelcontextprotocol &amp; spring ai for Java 8
+[io.modelcontextprotocol] & [spring-ai] for Java 8
