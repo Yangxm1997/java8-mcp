@@ -14,6 +14,7 @@
         <module>java8-commons</module>
         <module>java8-spring-ai-mcp</module>
         <module>java8-spring-ai-starter-mcp-server</module>
+        <module>java8-spring-ai-starter-mcp-server-webflux</module>
     </modules>
 
     <properties>
