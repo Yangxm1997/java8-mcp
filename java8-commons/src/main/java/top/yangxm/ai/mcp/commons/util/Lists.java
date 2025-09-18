@@ -13,6 +13,11 @@ public final class Lists {
         return list == null || list.isEmpty();
     }
 
+    @SafeVarargs
+    public static <E> List<E> of(E... elements) {
+        return listN(elements);
+    }
+
     public static <E> List<E> of() {
         return listN();
     }
