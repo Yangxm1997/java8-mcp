@@ -11,9 +11,9 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>java8-spring-ai-starter-mcp-server-webflux</artifactId>
-    <name>Java8 - Spring AI Starter - MCP Server Webflux</name>
-    <description>Spring AI MCP Server WebFlux Spring Boot Starter</description>
+    <artifactId>java8-spring-ai-starter-mcp-server-httpservlet</artifactId>
+    <name>Java8 - Spring AI Starter - MCP Server HttpServlet</name>
+    <description>Spring AI MCP Server Servlet Spring Boot Starter</description>
 
     <dependencies>
         <dependency>
@@ -23,8 +23,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webflux</artifactId>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
