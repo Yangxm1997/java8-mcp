@@ -3,6 +3,7 @@ package top.yangxm.ai.mcp.commons.json;
 import top.yangxm.ai.mcp.commons.util.Assert;
 import top.yangxm.ai.mcp.commons.util.ClassUtils;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 
 @SuppressWarnings("unused")
@@ -14,6 +15,10 @@ public interface McpJsonMapper {
     <T> T readValue(String content, TypeRef<T> type);
 
     <T> T readValue(byte[] content, TypeRef<T> type);
+
+    <T> T readValue(String content, Type type);
+
+    <T> T readValue(byte[] content, Type type);
 
     <T> T convertValue(Object fromValue, Class<T> type);
 

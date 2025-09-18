@@ -74,6 +74,30 @@ public final class JacksonMcpJsonMapper implements McpJsonMapper {
     }
 
     @Override
+    public <T> T readValue(String content, Type type) {
+        Assert.notNull(content, "content cannot be null");
+        Assert.notNull(type, "type cannot be null");
+        JavaType javaType = objectMapper.getTypeFactory().constructType(type);
+        try {
+            return objectMapper.readValue(content, javaType);
+        } catch (IOException e) {
+            throw new IllegalStateException(String.format("Convert JSON from String to %s failed", type.getTypeName()), e);
+        }
+    }
+
+    @Override
+    public <T> T readValue(byte[] content, Type type) {
+        Assert.notNull(content, "content cannot be null");
+        Assert.notNull(type, "type cannot be null");
+        JavaType javaType = objectMapper.getTypeFactory().constructType(type);
+        try {
+            return objectMapper.readValue(content, javaType);
+        } catch (IOException e) {
+            throw new IllegalStateException(String.format("Convert JSON from byte[] to %s failed", type.getTypeName()), e);
+        }
+    }
+
+    @Override
     public <T> T convertValue(Object fromValue, Class<T> type) {
         Assert.notNull(fromValue, "fromValue cannot be null");
         Assert.notNull(type, "type cannot be null");

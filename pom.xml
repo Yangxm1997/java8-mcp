@@ -12,6 +12,7 @@
     <modules>
         <module>java8-io-modelcontextprotocol-mcp-sdk</module>
         <module>java8-commons</module>
+        <module>java8-spring-ai-mcp</module>
     </modules>
 
     <properties>
