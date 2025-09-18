@@ -83,6 +83,18 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
                 baseUrl, messageEndpoint, sseEndpoint, keepAliveInterval);
     }
 
+    public String baseUrl() {
+        return baseUrl;
+    }
+
+    public String messageEndpoint() {
+        return messageEndpoint;
+    }
+
+    public String sseEndpoint() {
+        return sseEndpoint;
+    }
+
     private Mono<ServerResponse> handleSseConnection(ServerRequest request) {
         if (isClosing) {
             return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).bodyValue("Server is shutting down");

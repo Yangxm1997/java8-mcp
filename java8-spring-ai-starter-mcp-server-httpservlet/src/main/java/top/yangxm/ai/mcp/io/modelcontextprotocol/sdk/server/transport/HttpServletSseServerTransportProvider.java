@@ -80,8 +80,20 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
             this.keepAliveScheduler = null;
         }
 
-        LOGGER.debug("Http servlet SSE transport provider initialized with baseUrl: {}, messageEndpoint: {}, sseEndpoint: {}, keepAliveInterval: {}",
+        LOGGER.debug("Http Servlet SSE transport provider initialized with baseUrl: {}, messageEndpoint: {}, sseEndpoint: {}, keepAliveInterval: {}",
                 baseUrl, messageEndpoint, sseEndpoint, keepAliveInterval);
+    }
+
+    public String baseUrl() {
+        return baseUrl;
+    }
+
+    public String messageEndpoint() {
+        return messageEndpoint;
+    }
+
+    public String sseEndpoint() {
+        return sseEndpoint;
     }
 
     @Override

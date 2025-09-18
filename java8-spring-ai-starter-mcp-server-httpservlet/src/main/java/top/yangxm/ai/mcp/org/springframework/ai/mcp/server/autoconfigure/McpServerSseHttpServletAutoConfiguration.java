@@ -24,6 +24,15 @@ import javax.servlet.http.HttpServlet;
 @Conditional({McpServerStdioDisabledCondition.class, McpServerAutoConfiguration.EnabledSseServerCondition.class})
 public class McpServerSseHttpServletAutoConfiguration {
 
+    public McpServerSseHttpServletAutoConfiguration() {
+        final Package _package = this.getClass().getPackage();
+        String version = _package.getImplementationVersion();
+        if (version == null || version.isEmpty()) {
+            version = "dev";
+        }
+        Banner.printBanner("java8-spring-ai-starter-mcp-server-httpservlet", version);
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public HttpServletSseServerTransportProvider httpServletTransport(McpServerSseProperties serverProperties) {

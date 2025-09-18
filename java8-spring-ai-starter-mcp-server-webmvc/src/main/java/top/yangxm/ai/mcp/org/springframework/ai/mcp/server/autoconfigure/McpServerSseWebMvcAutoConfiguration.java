@@ -6,10 +6,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.ServerResponse;
 import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxSseServerTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebMvcSseServerTransportProvider;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStdioDisabledCondition;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerSseProperties;
@@ -17,24 +18,24 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 @SuppressWarnings("unused")
 @AutoConfiguration(before = McpServerAutoConfiguration.class)
 @EnableConfigurationProperties({McpServerSseProperties.class})
-@ConditionalOnClass({WebFluxSseServerTransportProvider.class})
+@ConditionalOnClass({WebMvcSseServerTransportProvider.class})
 @ConditionalOnMissingBean(McpServerTransportProvider.class)
 @Conditional({McpServerStdioDisabledCondition.class, McpServerAutoConfiguration.EnabledSseServerCondition.class})
-public class McpServerSseWebFluxAutoConfiguration {
+public class McpServerSseWebMvcAutoConfiguration {
 
-    public McpServerSseWebFluxAutoConfiguration() {
+    public McpServerSseWebMvcAutoConfiguration() {
         final Package _package = this.getClass().getPackage();
         String version = _package.getImplementationVersion();
         if (version == null || version.isEmpty()) {
             version = "dev";
         }
-        Banner.printBanner("java8-spring-ai-starter-mcp-server-webflux", version);
+        Banner.printBanner("java8-spring-ai-starter-mcp-server-webmvc", version);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public WebFluxSseServerTransportProvider webFluxTransport(McpServerSseProperties serverProperties) {
-        return WebFluxSseServerTransportProvider.builder()
+    public WebMvcSseServerTransportProvider webMvcTransport(McpServerSseProperties serverProperties) {
+        return WebMvcSseServerTransportProvider.builder()
                 .jsonMapper(McpJsonMapper.getDefault())
                 .baseUrl(serverProperties.getBaseUrl())
                 .messageEndpoint(serverProperties.getSseMessageEndpoint())
@@ -44,7 +45,7 @@ public class McpServerSseWebFluxAutoConfiguration {
     }
 
     @Bean
-    public RouterFunction<?> webfluxMcpRouterFunction(WebFluxSseServerTransportProvider webFluxProvider) {
-        return webFluxProvider.getRouterFunction();
+    public RouterFunction<ServerResponse> mvcMcpRouterFunction(WebMvcSseServerTransportProvider webMvcProvider) {
+        return webMvcProvider.getRouterFunction();
     }
 }

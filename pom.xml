@@ -16,6 +16,7 @@
         <module>java8-spring-ai-starter-mcp-server</module>
         <module>java8-spring-ai-starter-mcp-server-webflux</module>
         <module>java8-spring-ai-starter-mcp-server-httpservlet</module>
+        <module>java8-spring-ai-starter-mcp-server-webmvc</module>
     </modules>
 
     <properties>

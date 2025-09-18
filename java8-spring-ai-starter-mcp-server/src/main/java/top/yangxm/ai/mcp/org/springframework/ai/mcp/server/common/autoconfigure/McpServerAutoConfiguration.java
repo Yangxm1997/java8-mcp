@@ -46,11 +46,10 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 @AutoConfiguration(
         afterName = {
-                "org.springframework.ai.mcp.server.common.autoconfigure.ToolCallbackConverterAutoConfiguration",
-                "org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebFluxAutoConfiguration",
-                "org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebMvcAutoConfiguration",
-                "org.springframework.ai.mcp.server.autoconfigure.McpServerStreamableHttpWebMvcAutoConfiguration",
-                "org.springframework.ai.mcp.server.autoconfigure.McpServerStreamableHttpWebFluxAutoConfiguration"}
+                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.ToolCallbackConverterAutoConfiguration",
+                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseHttpServletAutoConfiguration",
+                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebFluxAutoConfiguration",
+                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebMvcAutoConfiguration"}
 )
 @ConditionalOnClass({McpSchema.class})
 @EnableConfigurationProperties({McpServerProperties.class, McpServerChangeNotificationProperties.class})
@@ -259,8 +258,7 @@ public class McpServerAutoConfiguration {
         @ConditionalOnProperty(
                 prefix = McpServerProperties.CONFIG_PREFIX,
                 name = "protocol",
-                havingValue = "STREAMABLE",
-                matchIfMissing = false
+                havingValue = "STREAMABLE"
         )
         static class StreamableEnabledCondition {
         }
@@ -307,8 +305,7 @@ public class McpServerAutoConfiguration {
         @ConditionalOnProperty(
                 prefix = McpServerProperties.CONFIG_PREFIX,
                 name = "protocol",
-                havingValue = "STREAMABLE",
-                matchIfMissing = false
+                havingValue = "STREAMABLE"
         )
         static class StreamableEnabledCondition {
         }
