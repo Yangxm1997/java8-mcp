@@ -3,7 +3,6 @@ package top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.Module;
 import com.github.victools.jsonschema.generator.Option;
@@ -17,7 +16,10 @@ import com.github.victools.jsonschema.module.jackson.JacksonOption;
 import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
 import io.swagger.v3.oas.annotations.media.Schema;
 import reactor.util.annotation.Nullable;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.util.Assert;
+import top.yangxm.ai.mcp.commons.util.Lists;
+import top.yangxm.ai.mcp.commons.util.Maps;
 import top.yangxm.ai.mcp.commons.util.Utils;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.CallToolRequest;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpAsyncServerExchange;
@@ -25,18 +27,19 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpSyncServerExchang
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpMeta;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpProgressToken;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpToolParam;
-import top.yangxm.ai.mcp.org.springframework.ai.util.JsonParser;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("unused")
 public class JsonSchemaGenerator {
+    private static final JsonMapper JSON_MAPPER = JsonMapper.getDefault();
     private static final boolean PROPERTY_REQUIRED_BY_DEFAULT = true;
     private static final SchemaGenerator TYPE_SCHEMA_GENERATOR;
     private static final SchemaGenerator SUBTYPE_SCHEMA_GENERATOR;
@@ -95,20 +98,20 @@ public class JsonSchemaGenerator {
 
             // 如果只有CallToolRequest，返回空的schema
             if (!hasOtherParams) {
-                ObjectNode schema = JsonParser.getObjectMapper().createObjectNode();
+                Map<String, Object> schema = new HashMap<>();
                 schema.put("type", "object");
-                schema.putObject("properties");
-                schema.putArray("required");
-                return schema.toPrettyString();
+                schema.put("properties", Maps.of());
+                schema.put("required", Lists.of());
+                return JSON_MAPPER.writeValueAsString(schema);
             }
         }
 
-        ObjectNode schema = JsonParser.getObjectMapper().createObjectNode();
-        schema.put("$schema", SchemaVersion.DRAFT_2020_12.getIdentifier());
+        Map<String, Object> properties = new HashMap<>();
+        Set<String> required = new LinkedHashSet<>();
+        Map<String, Object> schema = new HashMap<>();
         schema.put("type", "object");
-
-        ObjectNode properties = schema.putObject("properties");
-        List<String> required = new ArrayList<>();
+        schema.put("properties", properties);
+        schema.put("required", required);
 
         for (int i = 0; i < method.getParameterCount(); i++) {
             Parameter parameter = method.getParameters()[i];
@@ -146,12 +149,9 @@ public class JsonSchemaGenerator {
             if (Utils.hasText(parameterDescription)) {
                 parameterNode.put("description", parameterDescription);
             }
-            properties.set(parameterName, parameterNode);
+            properties.put(parameterName, parameterNode);
         }
-
-        ArrayNode requiredArray = schema.putArray("required");
-        required.forEach(requiredArray::add);
-        return schema.toPrettyString();
+        return JSON_MAPPER.writeValueAsString(schema);
     }
 
     public static String generateFromClass(Class<?> clazz) {
