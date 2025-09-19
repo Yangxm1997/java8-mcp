@@ -2,7 +2,7 @@ package top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
@@ -44,7 +44,7 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
     public static final String MESSAGE_EVENT_TYPE = "message";
     public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 
-    private final McpJsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
     private final String baseUrl;
     private final String messageEndpoint;
     private final String sseEndpoint;
@@ -54,7 +54,7 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
     private final KeepAliveScheduler keepAliveScheduler;
     private McpServerSessionFactory sessionFactory;
 
-    private HttpServletSseServerTransportProvider(McpJsonMapper jsonMapper, String baseUrl, String messageEndpoint,
+    private HttpServletSseServerTransportProvider(JsonMapper jsonMapper, String baseUrl, String messageEndpoint,
                                                   String sseEndpoint, Duration keepAliveInterval,
                                                   McpTransportContextExtractor<HttpServletRequest> contextExtractor) {
         Assert.notNull(jsonMapper, "JsonMapper must not be null");
@@ -297,14 +297,14 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
     }
 
     public static class Builder {
-        private McpJsonMapper jsonMapper;
+        private JsonMapper jsonMapper;
         private String baseUrl = DEFAULT_BASE_URL;
         private String messageEndpoint;
         private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
         private McpTransportContextExtractor<HttpServletRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
         private Duration keepAliveInterval;
 
-        public Builder jsonMapper(McpJsonMapper jsonMapper) {
+        public Builder jsonMapper(JsonMapper jsonMapper) {
             Assert.notNull(jsonMapper, "JsonMapper must not be null");
             this.jsonMapper = jsonMapper;
             return this;
@@ -343,7 +343,7 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
             if (messageEndpoint == null) {
                 throw new IllegalStateException("MessageEndpoint must be set");
             }
-            return new HttpServletSseServerTransportProvider(jsonMapper == null ? McpJsonMapper.getDefault() : jsonMapper,
+            return new HttpServletSseServerTransportProvider(jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
                     baseUrl, messageEndpoint, sseEndpoint, keepAliveInterval, contextExtractor);
         }
     }

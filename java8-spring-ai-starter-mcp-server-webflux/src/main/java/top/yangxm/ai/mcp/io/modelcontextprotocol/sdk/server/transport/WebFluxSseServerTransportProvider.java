@@ -11,7 +11,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
@@ -39,7 +39,7 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
     public static final String MESSAGE_EVENT_TYPE = "message";
     public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 
-    private final McpJsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
     private final String baseUrl;
     private final String messageEndpoint;
     private final String sseEndpoint;
@@ -50,7 +50,7 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
     private volatile boolean isClosing = false;
     private McpServerSessionFactory sessionFactory;
 
-    private WebFluxSseServerTransportProvider(McpJsonMapper jsonMapper, String baseUrl, String messageEndpoint,
+    private WebFluxSseServerTransportProvider(JsonMapper jsonMapper, String baseUrl, String messageEndpoint,
                                               String sseEndpoint, Duration keepAliveInterval,
                                               McpTransportContextExtractor<ServerRequest> contextExtractor) {
         Assert.notNull(jsonMapper, "JsonMapper must not be null");
@@ -255,14 +255,14 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
     }
 
     public static class Builder {
-        private McpJsonMapper jsonMapper;
+        private JsonMapper jsonMapper;
         private String baseUrl = DEFAULT_BASE_URL;
         private String messageEndpoint;
         private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
         private McpTransportContextExtractor<ServerRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
         private Duration keepAliveInterval;
 
-        public Builder jsonMapper(McpJsonMapper jsonMapper) {
+        public Builder jsonMapper(JsonMapper jsonMapper) {
             Assert.notNull(jsonMapper, "JsonMapper must not be null");
             this.jsonMapper = jsonMapper;
             return this;
@@ -301,7 +301,7 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
             if (messageEndpoint == null) {
                 throw new IllegalStateException("MessageEndpoint must be set");
             }
-            return new WebFluxSseServerTransportProvider(jsonMapper == null ? McpJsonMapper.getDefault() : jsonMapper,
+            return new WebFluxSseServerTransportProvider(jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
                     baseUrl, messageEndpoint, sseEndpoint, keepAliveInterval, contextExtractor);
         }
     }

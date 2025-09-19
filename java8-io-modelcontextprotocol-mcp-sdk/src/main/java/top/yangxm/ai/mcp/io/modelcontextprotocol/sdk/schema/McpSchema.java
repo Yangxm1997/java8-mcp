@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
@@ -74,7 +74,7 @@ public final class McpSchema {
     // Elicitation Methods
     public static final String METHOD_ELICITATION_CREATE = "elicitation/create";
 
-    public static JSONRPCMessage deserializeJsonRpcMessage(McpJsonMapper jsonMapper, String jsonText) {
+    public static JSONRPCMessage deserializeJsonRpcMessage(JsonMapper jsonMapper, String jsonText) {
 
         logger.debug("Received JSON message: {}", jsonText);
         HashMap<String, Object> map = jsonMapper.readValue(jsonText, MAP_TYPE_REF);
@@ -89,7 +89,7 @@ public final class McpSchema {
     }
 
 
-    private static Map<String, Object> schemaToMap(McpJsonMapper jsonMapper, String schema) {
+    private static Map<String, Object> schemaToMap(JsonMapper jsonMapper, String schema) {
         try {
             return jsonMapper.readValue(schema, MAP_TYPE_REF);
         } catch (Exception e) {
@@ -97,7 +97,7 @@ public final class McpSchema {
         }
     }
 
-    private static JsonSchema parseSchema(McpJsonMapper jsonMapper, String schema) {
+    private static JsonSchema parseSchema(JsonMapper jsonMapper, String schema) {
         try {
             return jsonMapper.readValue(schema, JsonSchema.class);
         } catch (Exception e) {
@@ -2255,7 +2255,7 @@ public final class McpSchema {
                 return this;
             }
 
-            public Builder inputSchema(McpJsonMapper jsonMapper, String inputSchema) {
+            public Builder inputSchema(JsonMapper jsonMapper, String inputSchema) {
                 this.inputSchema = parseSchema(jsonMapper, inputSchema);
                 return this;
             }
@@ -2265,7 +2265,7 @@ public final class McpSchema {
                 return this;
             }
 
-            public Builder outputSchema(McpJsonMapper jsonMapper, String outputSchema) {
+            public Builder outputSchema(JsonMapper jsonMapper, String outputSchema) {
                 this.outputSchema = schemaToMap(jsonMapper, outputSchema);
                 return this;
             }
@@ -2730,7 +2730,7 @@ public final class McpSchema {
         CallToolRequest() {
         }
 
-        public CallToolRequest(McpJsonMapper jsonMapper, String name, String jsonArguments) {
+        public CallToolRequest(JsonMapper jsonMapper, String name, String jsonArguments) {
             this(name, parseJsonArguments(jsonMapper, jsonArguments), null);
         }
 
@@ -2798,7 +2798,7 @@ public final class McpSchema {
                     '}';
         }
 
-        private static Map<String, Object> parseJsonArguments(McpJsonMapper jsonMapper, String jsonArguments) {
+        private static Map<String, Object> parseJsonArguments(JsonMapper jsonMapper, String jsonArguments) {
             try {
                 return jsonMapper.readValue(jsonArguments, MAP_TYPE_REF);
             } catch (Exception e) {
@@ -2825,7 +2825,7 @@ public final class McpSchema {
                 return this;
             }
 
-            public Builder arguments(McpJsonMapper jsonMapper, String jsonArguments) {
+            public Builder arguments(JsonMapper jsonMapper, String jsonArguments) {
                 this.arguments = parseJsonArguments(jsonMapper, jsonArguments);
                 return this;
             }
@@ -2976,7 +2976,7 @@ public final class McpSchema {
                 return this;
             }
 
-            public Builder structuredContent(McpJsonMapper jsonMapper, String structuredContent) {
+            public Builder structuredContent(JsonMapper jsonMapper, String structuredContent) {
                 Assert.hasText(structuredContent, "structuredContent must not be empty");
                 try {
                     this.structuredContent = jsonMapper.readValue(structuredContent, MAP_TYPE_REF);

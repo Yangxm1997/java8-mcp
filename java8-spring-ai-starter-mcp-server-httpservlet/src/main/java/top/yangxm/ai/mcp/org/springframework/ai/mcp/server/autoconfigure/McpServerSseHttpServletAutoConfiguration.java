@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.HttpServletSseServerTransportProvider;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
@@ -37,7 +37,7 @@ public class McpServerSseHttpServletAutoConfiguration {
     @ConditionalOnMissingBean
     public HttpServletSseServerTransportProvider httpServletTransport(McpServerSseProperties serverProperties) {
         return HttpServletSseServerTransportProvider.builder()
-                .jsonMapper(McpJsonMapper.getDefault())
+                .jsonMapper(JsonMapper.getDefault())
                 .baseUrl(serverProperties.getBaseUrl())
                 .messageEndpoint(serverProperties.getSseMessageEndpoint())
                 .sseEndpoint(serverProperties.getSseEndpoint())

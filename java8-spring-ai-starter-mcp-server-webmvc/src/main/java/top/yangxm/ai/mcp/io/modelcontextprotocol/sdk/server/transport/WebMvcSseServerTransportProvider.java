@@ -7,7 +7,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
@@ -37,7 +37,7 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
     public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 
 
-    private final McpJsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
     private final String baseUrl;
     private final String messageEndpoint;
     private final String sseEndpoint;
@@ -48,7 +48,7 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
     private volatile boolean isClosing = false;
     private McpServerSessionFactory sessionFactory;
 
-    private WebMvcSseServerTransportProvider(McpJsonMapper jsonMapper, String baseUrl, String messageEndpoint,
+    private WebMvcSseServerTransportProvider(JsonMapper jsonMapper, String baseUrl, String messageEndpoint,
                                              String sseEndpoint, Duration keepAliveInterval,
                                              McpTransportContextExtractor<ServerRequest> contextExtractor) {
         Assert.notNull(jsonMapper, "McpJsonMapper must not be null");
@@ -263,14 +263,14 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
     }
 
     public static class Builder {
-        private McpJsonMapper jsonMapper;
+        private JsonMapper jsonMapper;
         private String baseUrl = "";
         private String messageEndpoint;
         private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
         private Duration keepAliveInterval;
         private McpTransportContextExtractor<ServerRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
 
-        public Builder jsonMapper(McpJsonMapper jsonMapper) {
+        public Builder jsonMapper(JsonMapper jsonMapper) {
             Assert.notNull(jsonMapper, "JsonMapper must not be null");
             this.jsonMapper = jsonMapper;
             return this;
@@ -309,7 +309,7 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
             if (messageEndpoint == null) {
                 throw new IllegalStateException("MessageEndpoint must be set");
             }
-            return new WebMvcSseServerTransportProvider(jsonMapper == null ? McpJsonMapper.getDefault() : jsonMapper,
+            return new WebMvcSseServerTransportProvider(jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
                     baseUrl, messageEndpoint, sseEndpoint, keepAliveInterval, contextExtractor);
         }
     }

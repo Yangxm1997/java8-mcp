@@ -1,7 +1,7 @@
 package top.yangxm.ai.mcp.org.springaicommunity.mcp.provider.tool;
 
 import org.springframework.util.Assert;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpTool;
 
 import java.lang.reflect.Method;
@@ -11,7 +11,7 @@ import java.util.List;
 public abstract class AbstractMcpToolProvider {
     protected final List<Object> toolObjects;
 
-    protected McpJsonMapper jsonMapper = McpJsonMapper.getDefault();
+    protected JsonMapper jsonMapper = JsonMapper.getDefault();
 
     public AbstractMcpToolProvider(List<Object> toolObjects) {
         Assert.notNull(toolObjects, "toolObjects cannot be null");
@@ -30,11 +30,11 @@ public abstract class AbstractMcpToolProvider {
         return Exception.class;
     }
 
-    public void setJsonMapper(McpJsonMapper jsonMapper) {
+    public void setJsonMapper(JsonMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
     }
 
-    public McpJsonMapper getJsonMapper() {
+    public JsonMapper getJsonMapper() {
         return this.jsonMapper;
     }
 }

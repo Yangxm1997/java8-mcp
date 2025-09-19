@@ -1,7 +1,7 @@
 package top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server;
 
 import reactor.core.publisher.Mono;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.schema.JsonSchemaValidator;
 import top.yangxm.ai.mcp.commons.util.Assert;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.common.McpUriTemplateManager;
@@ -121,7 +121,7 @@ public class McpSyncServer {
             return this;
         }
 
-        public Builder jsonMapper(McpJsonMapper jsonMapper) {
+        public Builder jsonMapper(JsonMapper jsonMapper) {
             this.asyncBuilder.jsonMapper(jsonMapper);
             return this;
         }

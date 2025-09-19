@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 
 @SuppressWarnings("unused")
-public interface McpJsonMapper {
+public interface JsonMapper {
     <T> T readValue(String content, Class<T> type);
 
     <T> T readValue(byte[] content, Class<T> type);
@@ -77,7 +77,7 @@ public interface McpJsonMapper {
         return result;
     }
 
-    static McpJsonMapper getDefault() {
-        return McpJsonInternal.getDefaultMapper();
+    static JsonMapper getDefault() {
+        return JsonMapperInternal.getDefaultMapper();
     }
 }

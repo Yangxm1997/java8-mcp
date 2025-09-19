@@ -3,7 +3,7 @@ package top.yangxm.ai.mcp.commons.json.jacksonimpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.util.Assert;
 
@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 @SuppressWarnings("unused")
-public final class JacksonMcpJsonMapper implements McpJsonMapper {
+public final class JacksonJsonMapper implements JsonMapper {
     private final ObjectMapper objectMapper;
 
-    public JacksonMcpJsonMapper(ObjectMapper objectMapper) {
+    public JacksonJsonMapper(ObjectMapper objectMapper) {
         if (objectMapper == null) {
             throw new IllegalArgumentException("ObjectMapper must not be null");
         }

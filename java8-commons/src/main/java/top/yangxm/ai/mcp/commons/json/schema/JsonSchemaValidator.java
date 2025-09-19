@@ -7,6 +7,6 @@ public interface JsonSchemaValidator {
     ValidationResponse validate(Map<String, Object> schema, Object structuredContent);
 
     static JsonSchemaValidator getDefault() {
-        return JsonSchemaInternal.getDefaultValidator();
+        return JsonSchemaValidatorInternal.getDefaultValidator();
     }
 }

@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.MimeType;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.util.Lists;
 import top.yangxm.ai.mcp.commons.util.Maps;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Annotations;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("unused")
 public final class McpToolUtils {
     public static final String TOOL_CONTEXT_MCP_EXCHANGE_KEY = "exchange";
-    private static final McpJsonMapper JSON_MAPPER = McpJsonMapper.getDefault();
+    private static final JsonMapper JSON_MAPPER = JsonMapper.getDefault();
 
     private McpToolUtils() {
     }

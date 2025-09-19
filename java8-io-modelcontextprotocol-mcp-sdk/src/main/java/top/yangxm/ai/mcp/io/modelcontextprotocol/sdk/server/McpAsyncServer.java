@@ -2,7 +2,7 @@ package top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.json.schema.JsonSchemaValidator;
 import top.yangxm.ai.mcp.commons.logger.Logger;
@@ -68,7 +68,7 @@ public class McpAsyncServer {
     };
 
     private final McpServerTransportProvider transportProvider;
-    private final McpJsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
     private final McpUriTemplateManager.Factory uriTemplateManagerFactory;
     private final JsonSchemaValidator jsonSchemaValidator;
     private final ServerCapabilities serverCapabilities;
@@ -82,7 +82,7 @@ public class McpAsyncServer {
     private List<String> protocolVersions;
 
     private McpAsyncServer(McpServerSessionTransportProvider sessionTransportProvider,
-                           McpJsonMapper jsonMapper,
+                           JsonMapper jsonMapper,
                            ServerCapabilities serverCapabilities,
                            Implementation serverInfo,
                            String instructions,
@@ -614,7 +614,7 @@ public class McpAsyncServer {
     public final static class Builder {
         private final static Implementation DEFAULT_SERVER_INFO = new Implementation("mcp-server", "1.0.0");
         private McpServerTransportProvider transportProvider;
-        private McpJsonMapper jsonMapper;
+        private JsonMapper jsonMapper;
         private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
         private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();
         private ServerCapabilities serverCapabilities = null;
@@ -631,7 +631,7 @@ public class McpAsyncServer {
         private Builder() {
         }
 
-        public Builder jsonMapper(McpJsonMapper jsonMapper) {
+        public Builder jsonMapper(JsonMapper jsonMapper) {
             Assert.notNull(jsonMapper, "jsonMapper must not be null");
             this.jsonMapper = jsonMapper;
             return this;
@@ -803,7 +803,7 @@ public class McpAsyncServer {
                         !Maps.isEmpty(resourceSpecs) ? new ServerCapabilities.ResourceCapabilities(false, false) : null,
                         !Maps.isEmpty(toolSpecs) ? new ServerCapabilities.ToolCapabilities(false) : null);
             }
-            return new McpAsyncServer(sessionTransportProvider, jsonMapper == null ? McpJsonMapper.getDefault() : jsonMapper,
+            return new McpAsyncServer(sessionTransportProvider, jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
                     this.serverCapabilities, this.serverInfo, this.instructions,
                     this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
                     this.rootsChangeConsumers, this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);

@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.web.reactive.function.server.RouterFunction;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxSseServerTransportProvider;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
@@ -35,7 +35,7 @@ public class McpServerSseWebFluxAutoConfiguration {
     @ConditionalOnMissingBean
     public WebFluxSseServerTransportProvider webFluxTransport(McpServerSseProperties serverProperties) {
         return WebFluxSseServerTransportProvider.builder()
-                .jsonMapper(McpJsonMapper.getDefault())
+                .jsonMapper(JsonMapper.getDefault())
                 .baseUrl(serverProperties.getBaseUrl())
                 .messageEndpoint(serverProperties.getSseMessageEndpoint())
                 .sseEndpoint(serverProperties.getSseEndpoint())

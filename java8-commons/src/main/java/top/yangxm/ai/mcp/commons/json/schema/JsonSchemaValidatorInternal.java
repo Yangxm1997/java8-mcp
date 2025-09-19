@@ -3,12 +3,12 @@ package top.yangxm.ai.mcp.commons.json.schema;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class JsonSchemaInternal {
+final class JsonSchemaValidatorInternal {
     private static JsonSchemaValidator defaultValidator = null;
 
     static JsonSchemaValidator getDefaultValidator() {
         if (defaultValidator == null) {
-            defaultValidator = JsonSchemaInternal.createDefaultValidator();
+            defaultValidator = JsonSchemaValidatorInternal.createDefaultValidator();
         }
         return defaultValidator;
     }

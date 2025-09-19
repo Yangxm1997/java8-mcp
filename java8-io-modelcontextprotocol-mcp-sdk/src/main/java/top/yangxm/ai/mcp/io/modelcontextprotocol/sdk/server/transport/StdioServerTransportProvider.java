@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-import top.yangxm.ai.mcp.commons.json.McpJsonMapper;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
@@ -32,7 +32,7 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public class StdioServerTransportProvider implements McpServerSessionTransportProvider {
     private static final Logger logger = LoggerFactoryHolder.getLogger(StdioServerTransportProvider.class);
-    private final McpJsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
     private final InputStream inputStream;
     private final OutputStream outputStream;
     private McpServerSession session;
@@ -40,10 +40,10 @@ public class StdioServerTransportProvider implements McpServerSessionTransportPr
     private final Sinks.One<Void> inboundReady = Sinks.one();
 
     public StdioServerTransportProvider() {
-        this(McpJsonMapper.getDefault(), System.in, System.out);
+        this(JsonMapper.getDefault(), System.in, System.out);
     }
 
-    public StdioServerTransportProvider(McpJsonMapper jsonMapper, InputStream inputStream, OutputStream outputStream) {
+    public StdioServerTransportProvider(JsonMapper jsonMapper, InputStream inputStream, OutputStream outputStream) {
         Assert.notNull(jsonMapper, "The JsonMapper can not be null");
         Assert.notNull(inputStream, "The InputStream can not be null");
         Assert.notNull(outputStream, "The OutputStream can not be null");
