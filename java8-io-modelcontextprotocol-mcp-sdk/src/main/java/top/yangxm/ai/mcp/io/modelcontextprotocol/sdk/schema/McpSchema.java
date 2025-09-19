@@ -24,7 +24,6 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public final class McpSchema {
     private McpSchema() {
-        // do nothing
     }
 
     public static final Logger logger = LoggerFactoryHolder.getLogger(McpSchema.class);
@@ -75,15 +74,14 @@ public final class McpSchema {
     public static final String METHOD_ELICITATION_CREATE = "elicitation/create";
 
     public static JSONRPCMessage deserializeJsonRpcMessage(JsonMapper jsonMapper, String jsonText) {
-
         logger.debug("Received JSON message: {}", jsonText);
         HashMap<String, Object> map = jsonMapper.readValue(jsonText, MAP_TYPE_REF);
         if (map.containsKey("method") && map.containsKey("id")) {
-            return jsonMapper.convertValue(jsonText, JSONRPCRequest.class);
+            return jsonMapper.convertValue(map, JSONRPCRequest.class);
         } else if (map.containsKey("method") && !map.containsKey("id")) {
-            return jsonMapper.convertValue(jsonText, JSONRPCNotification.class);
+            return jsonMapper.convertValue(map, JSONRPCNotification.class);
         } else if (map.containsKey("result") || map.containsKey("error")) {
-            return jsonMapper.convertValue(jsonText, JSONRPCResponse.class);
+            return jsonMapper.convertValue(map, JSONRPCResponse.class);
         }
         throw new IllegalArgumentException("Cannot deserialize JSONRPCMessage: " + jsonText);
     }
