@@ -3,13 +3,13 @@ package top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.CallToolRequest;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.CallToolResult;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpMeta;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpProgressToken;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ReactiveUtils;
-import top.yangxm.ai.mcp.org.springframework.ai.util.JsonParser;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public abstract class AbstractAsyncMcpToolMethodCallback<T> {
+    private static final JsonMapper JSON_MAPPER = JsonMapper.getDefault();
     private static final TypeRef<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeRef<Map<String, Object>>() {
     };
 
@@ -31,9 +32,9 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
                                                  Method toolMethod,
                                                  Object toolObject,
                                                  Class<? extends Throwable> toolCallExceptionClass) {
+        this.returnMode = returnMode;
         this.toolMethod = toolMethod;
         this.toolObject = toolObject;
-        this.returnMode = returnMode;
         this.toolCallExceptionClass = toolCallExceptionClass;
     }
 
@@ -81,11 +82,11 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
         }
 
         if (type instanceof Class<?>) {
-            return JsonParser.toTypedObject(value, (Class<?>) type);
+            return JsonMapper.toTypedObject(value, (Class<?>) type);
         }
 
-        String json = JsonParser.toJson(value);
-        return JsonParser.fromJson(json, type);
+        String json = JSON_MAPPER.writeValueAsString(value);
+        return JSON_MAPPER.readValue(json, type);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,7 +99,7 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
 
             if (ReactiveUtils.isReactiveReturnTypeOfVoid(this.toolMethod)) {
                 return monoResult
-                        .then(Mono.just(CallToolResult.builder().addTextContent(JsonParser.toJson("Done")).build()));
+                        .then(Mono.just(CallToolResult.builder().addTextContent(JSON_MAPPER.writeValueAsString("Done")).build()));
             }
 
             return monoResult.map(this::mapValueToCallToolResult)
@@ -116,7 +117,7 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
 
             if (ReactiveUtils.isReactiveReturnTypeOfVoid(this.toolMethod)) {
                 return fluxResult
-                        .then(Mono.just(CallToolResult.builder().addTextContent(JsonParser.toJson("Done")).build()));
+                        .then(Mono.just(CallToolResult.builder().addTextContent(JSON_MAPPER.writeValueAsString("Done")).build()));
             }
 
             return fluxResult.next()
@@ -137,7 +138,7 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
 
             if (ReactiveUtils.isReactiveReturnTypeOfVoid(this.toolMethod)) {
                 return monoFromPublisher
-                        .then(Mono.just(CallToolResult.builder().addTextContent(JsonParser.toJson("Done")).build()));
+                        .then(Mono.just(CallToolResult.builder().addTextContent(JSON_MAPPER.writeValueAsString("Done")).build()));
             }
 
             return monoFromPublisher.map(this::mapValueToCallToolResult)
@@ -158,12 +159,11 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
 
         Type returnType = this.toolMethod.getGenericReturnType();
         if (returnMode == ReturnMode.VOID || returnType == void.class) {
-            return CallToolResult.builder().addTextContent(JsonParser.toJson("Done")).build();
+            return CallToolResult.builder().addTextContent(JSON_MAPPER.writeValueAsString("Done")).build();
         }
 
         if (this.returnMode == ReturnMode.STRUCTURED) {
-            String jsonOutput = JsonParser.toJson(value);
-            Map<String, Object> structuredOutput = JsonParser.fromJson(jsonOutput, MAP_TYPE_REFERENCE);
+            Map<String, Object> structuredOutput = JSON_MAPPER.convertValue(value, MAP_TYPE_REFERENCE);
             return CallToolResult.builder().structuredContent(structuredOutput).build();
         }
 
@@ -175,7 +175,7 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
             return CallToolResult.builder().addTextContent((String) value).build();
         }
 
-        return CallToolResult.builder().addTextContent(JsonParser.toJson(value)).build();
+        return CallToolResult.builder().addTextContent(JSON_MAPPER.writeValueAsString(value)).build();
     }
 
     protected Mono<CallToolResult> createErrorResult(Exception e) {
@@ -193,5 +193,4 @@ public abstract class AbstractAsyncMcpToolMethodCallback<T> {
     }
 
     protected abstract boolean isExchangeOrContextType(Class<?> paramType);
-
 }

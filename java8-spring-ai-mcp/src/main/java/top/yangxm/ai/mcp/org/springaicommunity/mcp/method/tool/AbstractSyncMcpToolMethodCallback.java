@@ -1,11 +1,11 @@
 package top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool;
 
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.CallToolRequest;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.CallToolResult;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpMeta;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpProgressToken;
-import top.yangxm.ai.mcp.org.springframework.ai.util.JsonParser;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public abstract class AbstractSyncMcpToolMethodCallback<T> {
+    private static final JsonMapper JSON_MAPPER = JsonMapper.getDefault();
     private static final TypeRef<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeRef<Map<String, Object>>() {
     };
     protected final ReturnMode returnMode;
@@ -87,11 +88,11 @@ public abstract class AbstractSyncMcpToolMethodCallback<T> {
         }
 
         if (type instanceof Class<?>) {
-            return JsonParser.toTypedObject(value, (Class<?>) type);
+            return JsonMapper.toTypedObject(value, (Class<?>) type);
         }
 
-        String json = JsonParser.toJson(value);
-        return JsonParser.fromJson(json, type);
+        String json = JSON_MAPPER.writeValueAsString(value);
+        return JSON_MAPPER.readValue(json, type);
     }
 
     /**
@@ -106,13 +107,12 @@ public abstract class AbstractSyncMcpToolMethodCallback<T> {
 
         if (returnMode == ReturnMode.VOID || returnType == void.class) {
             return CallToolResult.builder()
-                    .addTextContent(JsonParser.toJson("Done"))
+                    .addTextContent(JSON_MAPPER.writeValueAsString("Done"))
                     .build();
         }
 
         if (this.returnMode == ReturnMode.STRUCTURED) {
-            String jsonOutput = JsonParser.toJson(result);
-            Map<String, Object> structuredOutput = JsonParser.fromJson(jsonOutput, MAP_TYPE_REFERENCE);
+            Map<String, Object> structuredOutput = JSON_MAPPER.convertValue(result, MAP_TYPE_REFERENCE);
             return CallToolResult.builder()
                     .structuredContent(structuredOutput)
                     .build();
@@ -129,7 +129,7 @@ public abstract class AbstractSyncMcpToolMethodCallback<T> {
         }
 
         return CallToolResult.builder()
-                .addTextContent(JsonParser.toJson(result))
+                .addTextContent(JSON_MAPPER.writeValueAsString(result))
                 .build();
     }
 

@@ -1,7 +1,7 @@
 package top.yangxm.ai.mcp.org.springframework.ai.util;
 
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import top.yangxm.ai.mcp.commons.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collections;
