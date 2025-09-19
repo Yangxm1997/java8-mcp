@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
+import top.yangxm.ai.mcp.commons.logger.Logger;
+import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebMvcSseServerTransportProvider;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
@@ -22,25 +24,27 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 @ConditionalOnMissingBean(McpServerTransportProvider.class)
 @Conditional({McpServerStdioDisabledCondition.class, McpServerAutoConfiguration.EnabledSseServerCondition.class})
 public class McpServerSseWebMvcAutoConfiguration {
+    private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerSseWebMvcAutoConfiguration.class);
 
-    public McpServerSseWebMvcAutoConfiguration() {
+    public McpServerSseWebMvcAutoConfiguration(McpServerSseProperties sseProperties) {
         final Package _package = this.getClass().getPackage();
         String version = _package.getImplementationVersion();
         if (version == null || version.isEmpty()) {
             version = "dev";
         }
         Banner.printBanner("java8-spring-ai-starter-mcp-server-webmvc", version);
+        logger.info(sseProperties.toString());
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public WebMvcSseServerTransportProvider webMvcTransport(McpServerSseProperties serverProperties) {
+    public WebMvcSseServerTransportProvider webMvcTransport(McpServerSseProperties sseProperties) {
         return WebMvcSseServerTransportProvider.builder()
                 .jsonMapper(JsonMapper.getDefault())
-                .baseUrl(serverProperties.getBaseUrl())
-                .messageEndpoint(serverProperties.getSseMessageEndpoint())
-                .sseEndpoint(serverProperties.getSseEndpoint())
-                .keepAliveInterval(serverProperties.getKeepAliveInterval())
+                .baseUrl(sseProperties.getBaseUrl())
+                .messageEndpoint(sseProperties.getSseMessageEndpoint())
+                .sseEndpoint(sseProperties.getSseEndpoint())
+                .keepAliveInterval(sseProperties.getKeepAliveInterval())
                 .build();
     }
 

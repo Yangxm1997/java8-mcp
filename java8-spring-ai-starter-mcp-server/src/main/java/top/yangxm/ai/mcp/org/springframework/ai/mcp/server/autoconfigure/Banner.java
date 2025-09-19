@@ -27,9 +27,9 @@ final class Banner {
         }
 
         System.out.println("====================== Java8 - Spring AI Starter ======================");
-        System.out.println(":: " + tsp + " -> " + version);
-        System.out.println(":: java8-spring-ai-starter-mcp-server -> " + springAiStarterMcpServerVersion);
-        System.out.println(":: java8-spring-ai-mcp -> " + springAiMcpVersion);
-        System.out.println(":: java8-io-modelcontextprotocol-mcp-sdk -> " + mcpSdkVersion);
+        System.out.printf(":: %-40s :: %s%n", tsp, version);
+        System.out.printf(":: %-40s :: %s%n", "java8-spring-ai-starter-mcp-server", springAiStarterMcpServerVersion);
+        System.out.printf(":: %-40s :: %s%n", "java8-spring-ai-mcp", springAiMcpVersion);
+        System.out.printf(":: %-40s :: %s%n", "java8-io-modelcontextprotocol-mcp-sdk", mcpSdkVersion);
     }
 }

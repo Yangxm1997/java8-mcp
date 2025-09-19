@@ -63,6 +63,10 @@ import java.util.stream.Collectors;
 public class McpServerAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerAutoConfiguration.class);
 
+    public McpServerAutoConfiguration(McpServerProperties serverProperties) {
+        logger.info(serverProperties.toString());
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public McpServerTransportProvider stdioServerTransport() {
@@ -83,7 +87,8 @@ public class McpServerAutoConfiguration {
             matchIfMissing = true
     )
     public McpSyncServer mcpSyncServer(McpServerTransportProvider transportProvider,
-                                       ServerCapabilities.Builder capabilitiesBuilder, McpServerProperties serverProperties,
+                                       ServerCapabilities.Builder capabilitiesBuilder,
+                                       McpServerProperties serverProperties,
                                        McpServerChangeNotificationProperties changeNotificationProperties,
                                        ObjectProvider<List<SyncToolSpec>> tools,
                                        ObjectProvider<List<SyncResourceSpec>> resources,
@@ -165,7 +170,8 @@ public class McpServerAutoConfiguration {
             havingValue = "ASYNC"
     )
     public McpAsyncServer mcpAsyncServer(McpServerTransportProvider transportProvider,
-                                         ServerCapabilities.Builder capabilitiesBuilder, McpServerProperties serverProperties,
+                                         ServerCapabilities.Builder capabilitiesBuilder,
+                                         McpServerProperties serverProperties,
                                          McpServerChangeNotificationProperties changeNotificationProperties,
                                          ObjectProvider<List<AsyncToolSpec>> tools,
                                          ObjectProvider<List<AsyncResourceSpec>> resources,
