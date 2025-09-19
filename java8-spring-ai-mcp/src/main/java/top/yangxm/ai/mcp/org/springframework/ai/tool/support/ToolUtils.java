@@ -91,12 +91,6 @@ public final class ToolUtils {
         return getDuplicateToolNames(Arrays.asList(toolCallbacks));
     }
 
-    /**
-     * Validates that a tool name follows recommended naming conventions. Logs a warning
-     * if the tool name contains characters that may not be compatible with some LLMs.
-     *
-     * @param toolName the tool name to validate
-     */
     private static void validateToolName(String toolName) {
         Assert.hasText(toolName, "Tool name cannot be null or empty");
         if (!RECOMMENDED_NAME_PATTERN.matcher(toolName).matches()) {
@@ -104,5 +98,4 @@ public final class ToolUtils {
                     + "Consider using only alphanumeric characters, underscores, hyphens, and dots.", toolName);
         }
     }
-
 }

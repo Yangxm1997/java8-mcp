@@ -18,8 +18,23 @@ public final class DefaultJsonSchemaGenerator implements JsonSchemaGenerator {
     }
 
     @Override
-    public String generate(Class<?> clazz) {
+    public String generateStringSchema(Class<?> clazz) {
         return JSON_MAPPER.writeValueAsString(getClassSchema(clazz, new HashSet<>()));
+    }
+
+    @Override
+    public String generateStringSchema(Type type) {
+        return JSON_MAPPER.writeValueAsString(getGenericSchema(type, new HashSet<>()));
+    }
+
+    @Override
+    public Map<String, Object> generateMapSchema(Class<?> clazz) {
+        return getClassSchema(clazz, new HashSet<>());
+    }
+
+    @Override
+    public Map<String, Object> generateMapSchema(Type type) {
+        return getGenericSchema(type, new HashSet<>());
     }
 
     private static Map<String, Object> getClassSchema(Class<?> clazz, Set<Class<?>> visited) {

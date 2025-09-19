@@ -1,7 +1,7 @@
 package top.yangxm.ai.mcp.org.springframework.ai.tool.support;
 
 import org.springframework.util.Assert;
-import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.JsonSchemaGenerator;
+import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ToolJsonSchemaGenerator;
 import top.yangxm.ai.mcp.org.springframework.ai.tool.definition.DefaultToolDefinition;
 import top.yangxm.ai.mcp.org.springframework.ai.tool.definition.ToolDefinition;
 
@@ -17,7 +17,7 @@ public final class ToolDefinitions {
         return DefaultToolDefinition.builder()
                 .name(ToolUtils.getToolName(method))
                 .description(ToolUtils.getToolDescription(method))
-                .inputSchema(JsonSchemaGenerator.generateForMethodInput(method));
+                .inputSchema(ToolJsonSchemaGenerator.generateForMethodInput(method));
     }
 
     public static ToolDefinition from(Method method) {

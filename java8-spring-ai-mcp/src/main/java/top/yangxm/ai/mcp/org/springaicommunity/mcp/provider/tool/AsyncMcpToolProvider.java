@@ -2,15 +2,15 @@ package top.yangxm.ai.mcp.org.springaicommunity.mcp.provider.tool;
 
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
+import top.yangxm.ai.mcp.commons.util.ClassUtils;
 import top.yangxm.ai.mcp.commons.util.Utils;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpTool;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.AsyncMcpToolMethodCallback;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.ReturnMode;
-import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ClassUtils;
-import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.JsonSchemaGenerator;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ReactiveUtils;
+import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ToolJsonSchemaGenerator;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.provider.ProviderUtils;
 
 import java.lang.reflect.Method;
@@ -38,7 +38,7 @@ public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
                             String toolName = Utils.hasText(toolJavaAnnotation.name()) ?
                                     toolJavaAnnotation.name() : mcpToolMethod.getName();
                             String toolDescription = toolJavaAnnotation.description();
-                            String inputSchema = JsonSchemaGenerator.generateForMethodInput(mcpToolMethod);
+                            String inputSchema = ToolJsonSchemaGenerator.generateForMethodInput(mcpToolMethod);
                             McpSchema.Tool.Builder toolBuilder = McpSchema.Tool.builder()
                                     .name(toolName)
                                     .description(toolDescription)
@@ -75,7 +75,7 @@ public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
                                     if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType)
                                             && !ClassUtils.isSimpleValueType(methodReturnType)) {
                                         toolBuilder.outputSchema(this.getJsonMapper(),
-                                                JsonSchemaGenerator.generateFromClass(typeArgument.getClass())
+                                                ToolJsonSchemaGenerator.generateFromClass(typeArgument.getClass())
                                         );
                                     }
                                 });

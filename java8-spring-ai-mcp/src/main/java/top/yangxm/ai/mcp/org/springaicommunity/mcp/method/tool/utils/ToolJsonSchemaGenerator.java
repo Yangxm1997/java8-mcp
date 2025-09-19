@@ -1,23 +1,9 @@
 package top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.victools.jsonschema.generator.Module;
-import com.github.victools.jsonschema.generator.Option;
-import com.github.victools.jsonschema.generator.OptionPreset;
-import com.github.victools.jsonschema.generator.SchemaGenerator;
-import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
-import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
-import com.github.victools.jsonschema.generator.SchemaVersion;
-import com.github.victools.jsonschema.module.jackson.JacksonModule;
-import com.github.victools.jsonschema.module.jackson.JacksonOption;
-import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
-import io.swagger.v3.oas.annotations.media.Schema;
-import reactor.util.annotation.Nullable;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
+import top.yangxm.ai.mcp.commons.json.schema.JsonSchemaGenerator;
 import top.yangxm.ai.mcp.commons.util.Assert;
+import top.yangxm.ai.mcp.commons.util.ClassUtils;
 import top.yangxm.ai.mcp.commons.util.Lists;
 import top.yangxm.ai.mcp.commons.util.Maps;
 import top.yangxm.ai.mcp.commons.util.Utils;
@@ -38,42 +24,18 @@ import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings("unused")
-public class JsonSchemaGenerator {
+public class ToolJsonSchemaGenerator {
     private static final JsonMapper JSON_MAPPER = JsonMapper.getDefault();
+    private static final JsonSchemaGenerator JSON_SCHEMA_GENERATOR = JsonSchemaGenerator.getDefault();
     private static final boolean PROPERTY_REQUIRED_BY_DEFAULT = true;
-    private static final SchemaGenerator TYPE_SCHEMA_GENERATOR;
-    private static final SchemaGenerator SUBTYPE_SCHEMA_GENERATOR;
     private static final Map<Method, String> methodSchemaCache = new ConcurrentReferenceHashMap<>(256);
     private static final Map<Class<?>, String> classSchemaCache = new ConcurrentReferenceHashMap<>(256);
     private static final Map<Type, String> typeSchemaCache = new ConcurrentReferenceHashMap<>(256);
 
-    static {
-        Module jacksonModule = new JacksonModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED);
-        Module openApiModule = new Swagger2Module();
-        Module springAiSchemaModule = PROPERTY_REQUIRED_BY_DEFAULT ? new SpringAiSchemaModule()
-                : new SpringAiSchemaModule(SpringAiSchemaModule.Option.PROPERTY_REQUIRED_FALSE_BY_DEFAULT);
-
-        SchemaGeneratorConfigBuilder schemaGeneratorConfigBuilder = new SchemaGeneratorConfigBuilder(
-                SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
-                .with(jacksonModule)
-                .with(openApiModule)
-                .with(springAiSchemaModule)
-                .with(Option.EXTRA_OPEN_API_FORMAT_VALUES)
-                .with(Option.STANDARD_FORMATS)
-                .with(Option.PLAIN_DEFINITION_KEYS);
-
-        SchemaGeneratorConfig typeSchemaGeneratorConfig = schemaGeneratorConfigBuilder.build();
-        TYPE_SCHEMA_GENERATOR = new SchemaGenerator(typeSchemaGeneratorConfig);
-
-        SchemaGeneratorConfig subtypeSchemaGeneratorConfig = schemaGeneratorConfigBuilder
-                .without(Option.SCHEMA_VERSION_INDICATOR)
-                .build();
-        SUBTYPE_SCHEMA_GENERATOR = new SchemaGenerator(subtypeSchemaGeneratorConfig);
-    }
 
     public static String generateForMethodInput(Method method) {
         Assert.notNull(method, "method cannot be null");
-        return methodSchemaCache.computeIfAbsent(method, JsonSchemaGenerator::internalGenerateFromMethodArguments);
+        return methodSchemaCache.computeIfAbsent(method, ToolJsonSchemaGenerator::internalGenerateFromMethodArguments);
     }
 
     private static String internalGenerateFromMethodArguments(Method method) {
@@ -144,48 +106,33 @@ public class JsonSchemaGenerator {
             if (isMethodParameterRequired(method, i)) {
                 required.add(parameterName);
             }
-            ObjectNode parameterNode = SUBTYPE_SCHEMA_GENERATOR.generateSchema(parameterType);
+
+            Map<String, Object> parameterSchema = JSON_SCHEMA_GENERATOR.generateMapSchema(parameterType);
             String parameterDescription = getMethodParameterDescription(method, i);
             if (Utils.hasText(parameterDescription)) {
-                parameterNode.put("description", parameterDescription);
+                parameterSchema.put("description", parameterDescription);
             }
-            properties.put(parameterName, parameterNode);
+            properties.put(parameterName, parameterSchema);
         }
         return JSON_MAPPER.writeValueAsString(schema);
     }
 
     public static String generateFromClass(Class<?> clazz) {
         Assert.notNull(clazz, "clazz cannot be null");
-        return classSchemaCache.computeIfAbsent(clazz, JsonSchemaGenerator::internalGenerateFromClass);
+        return classSchemaCache.computeIfAbsent(clazz, ToolJsonSchemaGenerator::internalGenerateFromClass);
     }
 
     private static String internalGenerateFromClass(Class<?> clazz) {
-        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12,
-                OptionPreset.PLAIN_JSON);
-        SchemaGeneratorConfig config = configBuilder.with(Option.EXTRA_OPEN_API_FORMAT_VALUES)
-                .without(Option.FLATTENED_ENUMS_FROM_TOSTRING)
-                .build();
-
-        SchemaGenerator generator = new SchemaGenerator(config);
-        JsonNode jsonSchema = generator.generateSchema(clazz);
-        return jsonSchema.toPrettyString();
+        return JSON_SCHEMA_GENERATOR.generateStringSchema(clazz);
     }
 
     public static String generateFromType(Type type) {
         Assert.notNull(type, "type cannot be null");
-        return typeSchemaCache.computeIfAbsent(type, JsonSchemaGenerator::internalGenerateFromType);
+        return typeSchemaCache.computeIfAbsent(type, ToolJsonSchemaGenerator::internalGenerateFromType);
     }
 
     private static String internalGenerateFromType(Type type) {
-        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12,
-                OptionPreset.PLAIN_JSON);
-        SchemaGeneratorConfig config = configBuilder.with(Option.EXTRA_OPEN_API_FORMAT_VALUES)
-                .without(Option.FLATTENED_ENUMS_FROM_TOSTRING)
-                .build();
-
-        SchemaGenerator generator = new SchemaGenerator(config);
-        JsonNode jsonSchema = generator.generateSchema(type);
-        return jsonSchema.toPrettyString();
+        return JSON_SCHEMA_GENERATOR.generateStringSchema(type);
     }
 
     public static boolean hasCallToolRequestParameter(Method method) {
@@ -194,49 +141,19 @@ public class JsonSchemaGenerator {
 
     private static boolean isMethodParameterRequired(Method method, int index) {
         Parameter parameter = method.getParameters()[index];
-
         McpToolParam toolParamAnnotation = parameter.getAnnotation(McpToolParam.class);
         if (toolParamAnnotation != null) {
             return toolParamAnnotation.required();
-        }
-
-        JsonProperty propertyAnnotation = parameter.getAnnotation(JsonProperty.class);
-        if (propertyAnnotation != null) {
-            return propertyAnnotation.required();
-        }
-
-        Schema schemaAnnotation = parameter.getAnnotation(Schema.class);
-        if (schemaAnnotation != null) {
-            return schemaAnnotation.requiredMode() == Schema.RequiredMode.REQUIRED
-                    || schemaAnnotation.requiredMode() == Schema.RequiredMode.AUTO
-                    || schemaAnnotation.required();
-        }
-
-        Nullable nullableAnnotation = parameter.getAnnotation(Nullable.class);
-        if (nullableAnnotation != null) {
-            return false;
         }
         return PROPERTY_REQUIRED_BY_DEFAULT;
     }
 
     private static String getMethodParameterDescription(Method method, int index) {
         Parameter parameter = method.getParameters()[index];
-
         McpToolParam toolParamAnnotation = parameter.getAnnotation(McpToolParam.class);
         if (toolParamAnnotation != null && Utils.hasText(toolParamAnnotation.description())) {
             return toolParamAnnotation.description();
         }
-
-        JsonPropertyDescription jacksonAnnotation = parameter.getAnnotation(JsonPropertyDescription.class);
-        if (jacksonAnnotation != null && Utils.hasText(jacksonAnnotation.value())) {
-            return jacksonAnnotation.value();
-        }
-
-        Schema schemaAnnotation = parameter.getAnnotation(Schema.class);
-        if (schemaAnnotation != null && Utils.hasText(schemaAnnotation.description())) {
-            return schemaAnnotation.description();
-        }
-
         return null;
     }
 }
