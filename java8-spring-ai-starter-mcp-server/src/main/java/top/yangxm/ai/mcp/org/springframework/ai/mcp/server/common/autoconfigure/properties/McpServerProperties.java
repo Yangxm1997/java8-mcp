@@ -17,7 +17,7 @@ public class McpServerProperties {
     private String name = "mcp-server";
     private String version = "1.0.0";
     private String instructions = null;
-    private ApiType type = ApiType.ASYNC;
+    private ApiType type = ApiType.SYNC;
     private Capabilities capabilities = new Capabilities();
     private ServerProtocol protocol = ServerProtocol.SSE;
     private Duration requestTimeout = Duration.ofSeconds(20);
@@ -125,14 +125,14 @@ public class McpServerProperties {
     }
 
     public enum ApiType {
-        // SYNC, // TODO: not support yet
+        SYNC,
         ASYNC
     }
 
     public enum ServerProtocol {
         SSE,
-        // STREAMABLE, // TODO: not support yet
-        // STATELESS // TODO: not support yet
+        STREAMABLE, // TODO: not support yet
+        STATELESS   // TODO: not support yet
     }
 
     public static class Capabilities {
