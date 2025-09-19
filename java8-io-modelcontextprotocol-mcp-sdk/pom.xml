@@ -15,6 +15,10 @@
     <name>Java8 - MCP SDK</name>
     <description>io-modelcontextprotocol/mcp-sdk</description>
 
+    <properties>
+        <log.name>mcp-sdk</log.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>top.yangxm.ai.mcp</groupId>

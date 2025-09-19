@@ -15,6 +15,10 @@
     <name>Java8 - Spring AI Starter - MCP Server HttpServlet</name>
     <description>Spring AI MCP Server Servlet Spring Boot Starter</description>
 
+    <properties>
+        <log.name>mcp-server-servlet</log.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>top.yangxm.ai.mcp</groupId>

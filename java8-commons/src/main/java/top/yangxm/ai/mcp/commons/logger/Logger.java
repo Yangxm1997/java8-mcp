@@ -1,26 +1,28 @@
 package top.yangxm.ai.mcp.commons.logger;
 
 import org.slf4j.Marker;
+import top.yangxm.ai.mcp.commons.util.ManifestUtils;
+
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public final class Logger implements org.slf4j.Logger {
     private final String prefix;
-
     private final org.slf4j.Logger logger;
 
     public Logger(org.slf4j.Logger logger, Class<?> clazz) {
-        final Package _package = clazz.getPackage();
-
-        String name = _package.getName();
-        if (name.isEmpty()) {
-            name = "unknown";
+        Optional<String> logName = ManifestUtils.getManifestField(clazz, "Log-Name");
+        if (!logName.isPresent()) {
+            this.prefix = "";
+        } else {
+            Package pkg = clazz.getPackage();
+            String version = pkg.getImplementationVersion();
+            if (version != null && !version.isEmpty()) {
+                this.prefix = String.format("[%s::v%s] ", logName.get(), version);
+            } else {
+                this.prefix = String.format("[%s] ", logName.get());
+            }
         }
-
-        String version = _package.getImplementationVersion();
-        if (version == null || version.isEmpty()) {
-            version = "dev";
-        }
-        prefix = String.format("[%s-%s]", name, version);
         this.logger = logger;
     }
 

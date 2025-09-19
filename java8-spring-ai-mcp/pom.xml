@@ -19,6 +19,7 @@
     </description>
 
     <properties>
+        <log.name>spring-mcp</log.name>
         <jsonschema.version>4.38.0</jsonschema.version>
         <swagger-annotations.version>2.2.36</swagger-annotations.version>
     </properties>
