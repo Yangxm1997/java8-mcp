@@ -27,11 +27,6 @@ public class McpServerSseWebMvcAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerSseWebMvcAutoConfiguration.class);
 
     public McpServerSseWebMvcAutoConfiguration(McpServerSseProperties sseProperties) {
-        final Package _package = this.getClass().getPackage();
-        String version = _package.getImplementationVersion();
-        if (version == null || version.isEmpty()) {
-            version = "dev";
-        }
         Banner.printBanner(McpServerSseWebMvcAutoConfiguration.class);
         logger.info(sseProperties.toString());
     }
