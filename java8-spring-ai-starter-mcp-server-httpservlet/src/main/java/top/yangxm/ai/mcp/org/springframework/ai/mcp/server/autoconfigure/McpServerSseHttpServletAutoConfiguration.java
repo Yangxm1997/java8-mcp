@@ -28,12 +28,7 @@ public class McpServerSseHttpServletAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerSseHttpServletAutoConfiguration.class);
 
     public McpServerSseHttpServletAutoConfiguration(McpServerSseProperties sseProperties) {
-        final Package _package = this.getClass().getPackage();
-        String version = _package.getImplementationVersion();
-        if (version == null || version.isEmpty()) {
-            version = "dev";
-        }
-        Banner.printBanner("java8-spring-ai-starter-mcp-server-httpservlet", version);
+        Banner.printBanner(McpServerSseHttpServletAutoConfiguration.class);
         logger.info(sseProperties.toString());
     }
 

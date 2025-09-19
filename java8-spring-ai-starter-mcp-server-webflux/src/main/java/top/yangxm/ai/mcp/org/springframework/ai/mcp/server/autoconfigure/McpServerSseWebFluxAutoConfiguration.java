@@ -26,12 +26,7 @@ public class McpServerSseWebFluxAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerSseWebFluxAutoConfiguration.class);
 
     public McpServerSseWebFluxAutoConfiguration(McpServerSseProperties sseProperties) {
-        final Package _package = this.getClass().getPackage();
-        String version = _package.getImplementationVersion();
-        if (version == null || version.isEmpty()) {
-            version = "dev";
-        }
-        Banner.printBanner("java8-spring-ai-starter-mcp-server-webflux", version);
+        Banner.printBanner(McpServerSseWebFluxAutoConfiguration.class);
         logger.info(sseProperties.toString());
     }
 

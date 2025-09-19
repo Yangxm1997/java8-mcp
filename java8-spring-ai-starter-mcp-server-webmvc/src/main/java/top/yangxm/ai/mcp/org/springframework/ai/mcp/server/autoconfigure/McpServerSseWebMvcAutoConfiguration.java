@@ -32,7 +32,7 @@ public class McpServerSseWebMvcAutoConfiguration {
         if (version == null || version.isEmpty()) {
             version = "dev";
         }
-        Banner.printBanner("java8-spring-ai-starter-mcp-server-webmvc", version);
+        Banner.printBanner(McpServerSseWebMvcAutoConfiguration.class);
         logger.info(sseProperties.toString());
     }
 
