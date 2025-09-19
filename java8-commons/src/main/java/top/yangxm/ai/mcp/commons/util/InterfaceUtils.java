@@ -8,7 +8,10 @@ public final class InterfaceUtils {
     private InterfaceUtils() {
     }
 
-    public static <I, S extends Supplier<I>> I createDefaultInterface(Class<I> interfaceClass, Class<S> supplierClass) {
+    public static <I, S extends Supplier<I>, C extends I> I createDefaultInterface(
+            Class<I> interfaceClass,
+            Class<S> supplierClass,
+            C defaultImplementation) {
         Assert.notNull(interfaceClass, "interfaceClass can not be null");
         Assert.notNull(supplierClass, "supplierClass can not be null");
         final String interfaceName = interfaceClass.getSimpleName();
@@ -18,9 +21,9 @@ public final class InterfaceUtils {
             try {
                 if (supplier != null) {
                     try {
-                        I mapper = supplier.get();
-                        if (mapper != null) {
-                            return mapper;
+                        I implementation = supplier.get();
+                        if (implementation != null) {
+                            return implementation;
                         }
                     } catch (Exception e) {
                         addException(ex, e, interfaceName);
@@ -29,6 +32,10 @@ public final class InterfaceUtils {
             } catch (Exception e) {
                 addException(ex, e, interfaceName);
             }
+        }
+
+        if (defaultImplementation != null) {
+            return defaultImplementation;
         }
 
         if (ex.get() != null) {

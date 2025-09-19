@@ -16,6 +16,6 @@ final class JsonSchemaValidatorInternal {
     }
 
     private static JsonSchemaValidator createDefaultValidator() {
-        return InterfaceUtils.createDefaultInterface(JsonSchemaValidator.class, JsonSchemaValidatorSupplier.class);
+        return InterfaceUtils.createDefaultInterface(JsonSchemaValidator.class, JsonSchemaValidatorSupplier.class, null);
     }
 }

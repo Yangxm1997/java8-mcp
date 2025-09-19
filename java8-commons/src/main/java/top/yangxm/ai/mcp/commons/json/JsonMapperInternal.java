@@ -16,6 +16,6 @@ final class JsonMapperInternal {
     }
 
     private static JsonMapper createDefaultMapper() {
-        return InterfaceUtils.createDefaultInterface(JsonMapper.class, JsonMapperSupplier.class);
+        return InterfaceUtils.createDefaultInterface(JsonMapper.class, JsonMapperSupplier.class, null);
     }
 }

@@ -16,6 +16,6 @@ final class JsonSchemaGeneratorInternal {
     }
 
     private static JsonSchemaGenerator createDefaultGenerator() {
-        return InterfaceUtils.createDefaultInterface(JsonSchemaGenerator.class, JsonSchemaGeneratorSupplier.class);
+        return InterfaceUtils.createDefaultInterface(JsonSchemaGenerator.class, JsonSchemaGeneratorSupplier.class, new DefaultJsonSchemaGenerator());
     }
 }
