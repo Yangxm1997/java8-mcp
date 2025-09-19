@@ -19,6 +19,7 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -68,12 +69,13 @@ public class ToolJsonSchemaGenerator {
             }
         }
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new LinkedHashMap<>();
         Set<String> required = new LinkedHashSet<>();
-        Map<String, Object> schema = new HashMap<>();
+        Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", properties);
         schema.put("required", required);
+        schema.put("additionalProperties", false);
 
         for (int i = 0; i < method.getParameterCount(); i++) {
             Parameter parameter = method.getParameters()[i];

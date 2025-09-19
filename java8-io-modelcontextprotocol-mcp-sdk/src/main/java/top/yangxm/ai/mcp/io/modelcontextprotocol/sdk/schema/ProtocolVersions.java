@@ -8,6 +8,6 @@ public interface ProtocolVersions {
     String MCP_2025_06_18 = "2025-06-18";
 
     static String suggestedVersion() {
-        return MCP_2025_03_26;
+        return MCP_2025_06_18;
     }
 }
