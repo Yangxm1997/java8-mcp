@@ -45,13 +45,12 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
-@AutoConfiguration(
-        afterName = {
-                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.ToolCallbackConverterAutoConfiguration",
-                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseHttpServletAutoConfiguration",
-                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebFluxAutoConfiguration",
-                "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebMvcAutoConfiguration"}
-)
+@AutoConfiguration(afterName = {
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.ToolCallbackConverterAutoConfiguration",
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseHttpServletAutoConfiguration",
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebFluxAutoConfiguration",
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebMvcAutoConfiguration"
+})
 @ConditionalOnClass({McpSchema.class})
 @EnableConfigurationProperties({McpServerProperties.class, McpServerChangeNotificationProperties.class})
 @ConditionalOnProperty(
@@ -298,6 +297,9 @@ public class McpServerAutoConfiguration {
                 matchIfMissing = true
         )
         static class SseEnabledCondition {
+            public SseEnabledCondition() {
+                McpServerAutoConfiguration.logger.info("Mcp Server Protocol: SSE");
+            }
         }
     }
 
@@ -321,6 +323,9 @@ public class McpServerAutoConfiguration {
                 havingValue = "STREAMABLE"
         )
         static class StreamableEnabledCondition {
+            public StreamableEnabledCondition() {
+                McpServerAutoConfiguration.logger.info("Mcp Server Protocol: STREAMABLE");
+            }
         }
     }
 }

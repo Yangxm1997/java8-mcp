@@ -32,9 +32,11 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 @AutoConfiguration(afterName = {
-        "org.springframework.ai.mcp.server.common.autoconfigure.StatelessToolCallbackConverterAutoConfiguration",
-        "org.springframework.ai.mcp.server.autoconfigure.McpServerStatelessWebFluxAutoConfiguration",
-        "org.springframework.ai.mcp.server.autoconfigure.McpServerStatelessWebMvcAutoConfiguration"})
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.StatelessToolCallbackConverterAutoConfiguration",
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerStatelessSseHttpServletAutoConfiguration",
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerStatelessSseWebFluxAutoConfiguration",
+        "top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerStatelessSseWebMvcAutoConfiguration"
+})
 @ConditionalOnClass({McpSchema.class})
 @EnableConfigurationProperties(McpServerProperties.class)
 @Conditional({
@@ -42,7 +44,7 @@ import java.util.stream.Collectors;
         McpServerStatelessAutoConfiguration.EnabledStatelessServerCondition.class
 })
 public class McpServerStatelessAutoConfiguration {
-    private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerAutoConfiguration.class);
+    private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerStatelessAutoConfiguration.class);
 
     public McpServerStatelessAutoConfiguration(McpServerProperties serverProperties) {
         logger.info(serverProperties.toString());
@@ -210,6 +212,9 @@ public class McpServerStatelessAutoConfiguration {
                 havingValue = "STATELESS"
         )
         static class StatelessEnabledCondition {
+            public StatelessEnabledCondition() {
+                McpServerStatelessAutoConfiguration.logger.info("Mcp Server Protocol: STATELESS");
+            }
         }
     }
 }
