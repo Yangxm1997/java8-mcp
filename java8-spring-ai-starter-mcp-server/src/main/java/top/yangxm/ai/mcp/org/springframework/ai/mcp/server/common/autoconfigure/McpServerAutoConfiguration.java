@@ -32,6 +32,7 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.Sy
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncToolSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProviderBase;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStreamableServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpSyncServer;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpSyncServerExchange;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.StdioServerTransportProvider;
@@ -159,8 +160,11 @@ public class McpServerAutoConfiguration {
             serverBuilder.immediateExecution(true);
         }
 
-        // TODO McpStreamableServer
-        return serverBuilder.buildSingleSessionMcpServer((McpServerTransportProvider) transportProvider);
+        if (transportProvider instanceof McpStreamableServerTransportProvider) {
+            return serverBuilder.buildStreamableSessionMcpServer((McpStreamableServerTransportProvider) transportProvider);
+        } else {
+            return serverBuilder.buildSingleSessionMcpServer((McpServerTransportProvider) transportProvider);
+        }
     }
 
     @Bean
@@ -242,8 +246,11 @@ public class McpServerAutoConfiguration {
         serverBuilder.instructions(serverProperties.getInstructions());
         serverBuilder.requestTimeout(serverProperties.getRequestTimeout());
 
-        // TODO McpStreamableServer
-        return serverBuilder.buildSingleSessionMcpServer((McpServerTransportProvider) transportProvider);
+        if (transportProvider instanceof McpStreamableServerTransportProvider) {
+            return serverBuilder.buildStreamableSessionMcpServer((McpStreamableServerTransportProvider) transportProvider);
+        } else {
+            return serverBuilder.buildSingleSessionMcpServer((McpServerTransportProvider) transportProvider);
+        }
     }
 
 

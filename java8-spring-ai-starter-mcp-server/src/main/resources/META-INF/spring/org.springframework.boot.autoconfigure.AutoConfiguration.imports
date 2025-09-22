@@ -1,4 +1,6 @@
 top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration
 top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.ToolCallbackConverterAutoConfiguration
+top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStatelessAutoConfiguration
+top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.StatelessToolCallbackConverterAutoConfiguration
 top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.annotations.McpServerSpecFactoryAutoConfiguration
 top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.annotations.McpServerAnnotationScannerAutoConfiguration
