@@ -47,6 +47,8 @@ public class WebFluxStatelessServerTransport implements McpStatelessServerTransp
                 .GET(this.messageEndpoint, this::handleGet)
                 .POST(this.messageEndpoint, this::handlePost)
                 .build();
+
+        logger.debug("WebFlux STATELESS transport provider initialized with messageEndpoint: {}", messageEndpoint);
     }
 
     public String messageEndpoint() {
