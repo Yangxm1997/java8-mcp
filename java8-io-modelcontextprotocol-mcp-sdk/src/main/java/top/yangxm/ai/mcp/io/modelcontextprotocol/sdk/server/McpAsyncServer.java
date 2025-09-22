@@ -3,7 +3,6 @@ package top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
-import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.json.schema.JsonSchemaValidator;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
@@ -58,14 +57,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public class McpAsyncServer {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpAsyncServer.class);
-    private final TypeRef<CallToolRequest> CALL_TOOL_REQUEST_TYPE_REF = new TypeRef<CallToolRequest>() {
-    };
-    private final TypeRef<ReadResourceRequest> READ_RESOURCE_REQUEST_TYPE_REF = new TypeRef<ReadResourceRequest>() {
-    };
-    private final TypeRef<GetPromptRequest> GET_PROMPT_REQUEST_TYPE_REF = new TypeRef<GetPromptRequest>() {
-    };
-    private final TypeRef<SetLevelRequest> SET_LEVEL_REQUEST_TYPE_REF = new TypeRef<SetLevelRequest>() {
-    };
 
     private final McpServerTransportProvider transportProvider;
     private final JsonMapper jsonMapper;
@@ -302,7 +293,7 @@ public class McpAsyncServer {
 
     private McpServerRequestHandler<CallToolResult> toolsCallRequestHandler() {
         return (exchange, params) -> {
-            CallToolRequest callToolRequest = jsonMapper.convertValue(params, CALL_TOOL_REQUEST_TYPE_REF);
+            CallToolRequest callToolRequest = jsonMapper.convertValue(params, CallToolRequest.class);
             String name = callToolRequest.name();
             return this.getToolSpec(name)
                     .map(ts -> Mono.defer(() -> ts.callHandler().apply(exchange, callToolRequest)))
@@ -414,7 +405,7 @@ public class McpAsyncServer {
 
     private McpServerRequestHandler<ReadResourceResult> resourcesReadRequestHandler() {
         return (exchange, params) -> {
-            ReadResourceRequest resourceRequest = jsonMapper.convertValue(params, READ_RESOURCE_REQUEST_TYPE_REF);
+            ReadResourceRequest resourceRequest = jsonMapper.convertValue(params, ReadResourceRequest.class);
             String resourceUri = resourceRequest.uri();
             return this.getResourceSpec(resourceUri)
                     .map(rs -> Mono.defer(() -> rs.readHandler().apply(exchange, resourceRequest)))
@@ -500,7 +491,7 @@ public class McpAsyncServer {
 
     private McpServerRequestHandler<GetPromptResult> promptsGetRequestHandler() {
         return (exchange, params) -> {
-            McpSchema.GetPromptRequest promptRequest = jsonMapper.convertValue(params, GET_PROMPT_REQUEST_TYPE_REF);
+            GetPromptRequest promptRequest = jsonMapper.convertValue(params, GetPromptRequest.class);
             String name = promptRequest.name();
             return this.getPromptSpec(name)
                     .map(ps -> Mono.defer(() -> ps.promptHandler().apply(exchange, promptRequest)))
@@ -560,7 +551,7 @@ public class McpAsyncServer {
 
     private McpServerRequestHandler<Object> setLoggerRequestHandler() {
         return (exchange, params) -> Mono.defer(() -> {
-            SetLevelRequest newMinLoggingLevel = jsonMapper.convertValue(params, SET_LEVEL_REQUEST_TYPE_REF);
+            SetLevelRequest newMinLoggingLevel = jsonMapper.convertValue(params, SetLevelRequest.class);
             exchange.setMinLoggingLevel(newMinLoggingLevel.level());
             return Mono.just(Maps.of());
         });
