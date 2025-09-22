@@ -22,9 +22,8 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.exception.McpError;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCMessage;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSession;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionFactory;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransport;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransport;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpTransportContextExtractor;
 
 import java.time.Duration;
@@ -32,7 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unused")
-public class WebFluxSseServerTransportProvider implements McpServerSessionTransportProvider {
+public class WebFluxSseServerTransportProvider implements McpServerTransportProvider {
     private static final Logger logger = LoggerFactoryHolder.getLogger(WebFluxSseServerTransportProvider.class);
     public static final String DEFAULT_BASE_URL = "";
     public static final String DEFAULT_SSE_ENDPOINT = "/sse";
@@ -48,7 +47,7 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
     private final McpTransportContextExtractor<ServerRequest> contextExtractor;
     private final KeepAliveScheduler keepAliveScheduler;
     private volatile boolean isClosing = false;
-    private McpServerSessionFactory sessionFactory;
+    private McpServerSession.Factory sessionFactory;
 
     private WebFluxSseServerTransportProvider(JsonMapper jsonMapper, String baseUrl, String messageEndpoint,
                                               String sseEndpoint, Duration keepAliveInterval,
@@ -105,7 +104,7 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body(Flux.<ServerSentEvent<?>>create(sink -> {
                     String sessionId = UUID.randomUUID().toString();
-                    WebFluxMcpSessionTransport sessionTransport = new WebFluxMcpSessionTransport(sessionId, sink);
+                    WebFluxMcpTransport sessionTransport = new WebFluxMcpTransport(sessionId, sink);
                     McpServerSession session = sessionFactory.create(sessionTransport);
                     logger.debug("Created new SSE connection for session: {}", sessionId);
                     sessions.put(sessionId, session);
@@ -157,7 +156,7 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
     }
 
     @Override
-    public void setSessionFactory(McpServerSessionFactory sessionFactory) {
+    public void setSessionFactory(McpServerSession.Factory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
@@ -195,11 +194,11 @@ public class WebFluxSseServerTransportProvider implements McpServerSessionTransp
         return this.routerFunction;
     }
 
-    private class WebFluxMcpSessionTransport implements McpServerSessionTransport {
+    private class WebFluxMcpTransport implements McpServerTransport {
         private final String sessionId;
         private final FluxSink<ServerSentEvent<?>> sink;
 
-        public WebFluxMcpSessionTransport(String sessionId, FluxSink<ServerSentEvent<?>> sink) {
+        public WebFluxMcpTransport(String sessionId, FluxSink<ServerSentEvent<?>> sink) {
             this.sessionId = sessionId;
             this.sink = sink;
         }

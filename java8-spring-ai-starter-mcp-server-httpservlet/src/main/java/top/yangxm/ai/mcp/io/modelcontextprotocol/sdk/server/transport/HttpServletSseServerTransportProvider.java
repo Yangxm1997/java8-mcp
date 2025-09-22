@@ -13,9 +13,8 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.exception.McpError;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCMessage;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSession;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionFactory;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransport;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransport;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpTransportContextExtractor;
 
 import javax.servlet.AsyncContext;
@@ -35,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
 @WebServlet(asyncSupported = true)
-public class HttpServletSseServerTransportProvider extends HttpServlet implements McpServerSessionTransportProvider {
+public class HttpServletSseServerTransportProvider extends HttpServlet implements McpServerTransportProvider {
     private static final Logger LOGGER = LoggerFactoryHolder.getLogger(HttpServletSseServerTransportProvider.class);
     public static final String UTF_8 = "UTF-8";
     public static final String APPLICATION_JSON = "application/json";
@@ -52,7 +51,7 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
     private final McpTransportContextExtractor<HttpServletRequest> contextExtractor;
     private final AtomicBoolean isClosing = new AtomicBoolean(false);
     private final KeepAliveScheduler keepAliveScheduler;
-    private McpServerSessionFactory sessionFactory;
+    private McpServerSession.Factory sessionFactory;
 
     private HttpServletSseServerTransportProvider(JsonMapper jsonMapper, String baseUrl, String messageEndpoint,
                                                   String sseEndpoint, Duration keepAliveInterval,
@@ -97,7 +96,7 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
     }
 
     @Override
-    public void setSessionFactory(McpServerSessionFactory sessionFactory) {
+    public void setSessionFactory(McpServerSession.Factory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
@@ -153,7 +152,7 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
         asyncContext.setTimeout(0);
 
         PrintWriter writer = response.getWriter();
-        HttpServletMcpSessionTransport sessionTransport = new HttpServletMcpSessionTransport(sessionId, asyncContext, writer);
+        HttpServletMcpTransport sessionTransport = new HttpServletMcpTransport(sessionId, asyncContext, writer);
         McpServerSession session = sessionFactory.create(sessionTransport);
         this.sessions.put(sessionId, session);
         this.sendEvent(writer, ENDPOINT_EVENT_TYPE, this.baseUrl + this.messageEndpoint + "?sessionId=" + sessionId);
@@ -240,12 +239,12 @@ public class HttpServletSseServerTransportProvider extends HttpServlet implement
         }
     }
 
-    private class HttpServletMcpSessionTransport implements McpServerSessionTransport {
+    private class HttpServletMcpTransport implements McpServerTransport {
         private final String sessionId;
         private final AsyncContext asyncContext;
         private final PrintWriter writer;
 
-        HttpServletMcpSessionTransport(String sessionId, AsyncContext asyncContext, PrintWriter writer) {
+        HttpServletMcpTransport(String sessionId, AsyncContext asyncContext, PrintWriter writer) {
             this.sessionId = sessionId;
             this.asyncContext = asyncContext;
             this.writer = writer;

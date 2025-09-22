@@ -41,7 +41,7 @@ public class McpServerSession implements McpLoggableSession {
     private final McpServerInitRequestHandler initRequestHandler;
     private final Map<String, McpServerRequestHandler<?>> requestHandlers;
     private final Map<String, McpServerNotificationHandler> notificationHandlers;
-    private final McpServerSessionTransport sessionTransport;
+    private final McpServerTransport sessionTransport;
     private final Sinks.One<McpAsyncServerExchange> exchangeSink = Sinks.one();
     private final AtomicReference<ClientCapabilities> clientCapabilities = new AtomicReference<>();
     private final AtomicReference<Implementation> clientInfo = new AtomicReference<>();
@@ -52,7 +52,7 @@ public class McpServerSession implements McpLoggableSession {
     private static final int STATE_INITIALIZING = 1;
     private static final int STATE_INITIALIZED = 2;
 
-    McpServerSession(Duration requestTimeout, McpServerSessionTransport sessionTransport,
+    McpServerSession(Duration requestTimeout, McpServerTransport sessionTransport,
                      McpServerInitRequestHandler initRequestHandler,
                      Map<String, McpServerRequestHandler<?>> requestHandlers,
                      Map<String, McpServerNotificationHandler> notificationHandlers) {
@@ -225,5 +225,10 @@ public class McpServerSession implements McpLoggableSession {
     public void close() {
         // TODO: clear pendingResponses and emit errors?
         this.sessionTransport.close();
+    }
+
+    @FunctionalInterface
+    public interface Factory {
+        McpServerSession create(McpServerTransport sessionTransport);
     }
 }

@@ -14,9 +14,8 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.exception.McpError;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCMessage;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSession;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionFactory;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransport;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransport;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class StdioServerTransportProvider implements McpServerSessionTransportProvider {
+public class StdioServerTransportProvider implements McpServerTransportProvider {
     private static final Logger logger = LoggerFactoryHolder.getLogger(StdioServerTransportProvider.class);
     private final JsonMapper jsonMapper;
     private final InputStream inputStream;
@@ -54,8 +53,8 @@ public class StdioServerTransportProvider implements McpServerSessionTransportPr
     }
 
     @Override
-    public void setSessionFactory(McpServerSessionFactory sessionFactory) {
-        StdioMcpSessionTransport transport = new StdioMcpSessionTransport();
+    public void setSessionFactory(McpServerSession.Factory sessionFactory) {
+        StdioMcpTransport transport = new StdioMcpTransport();
         this.session = sessionFactory.create(transport);
         transport.initProcessing();
     }
@@ -77,7 +76,7 @@ public class StdioServerTransportProvider implements McpServerSessionTransportPr
         return this.session.closeGracefully();
     }
 
-    private class StdioMcpSessionTransport implements McpServerSessionTransport {
+    private class StdioMcpTransport implements McpServerTransport {
         private final String sessionId;
         private final Sinks.Many<JSONRPCMessage> inboundSink;
         private final Sinks.Many<JSONRPCMessage> outboundSink;
@@ -86,7 +85,7 @@ public class StdioServerTransportProvider implements McpServerSessionTransportPr
         private final Scheduler outboundScheduler;
         private final Sinks.One<Void> outboundReady = Sinks.one();
 
-        public StdioMcpSessionTransport() {
+        public StdioMcpTransport() {
             this.sessionId = UUID.randomUUID().toString();
             this.inboundSink = Sinks.many().unicast().onBackpressureBuffer();
             this.outboundSink = Sinks.many().unicast().onBackpressureBuffer();

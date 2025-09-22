@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProviderBase;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxSseServerTransportProvider;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStdioDisabledCondition;
@@ -20,7 +20,7 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 @AutoConfiguration(before = McpServerAutoConfiguration.class)
 @EnableConfigurationProperties({McpServerSseProperties.class})
 @ConditionalOnClass({WebFluxSseServerTransportProvider.class})
-@ConditionalOnMissingBean(McpServerTransportProvider.class)
+@ConditionalOnMissingBean(McpServerTransportProviderBase.class)
 @Conditional({McpServerStdioDisabledCondition.class, McpServerAutoConfiguration.EnabledSseServerCondition.class})
 public class McpServerSseWebFluxAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerSseWebFluxAutoConfiguration.class);

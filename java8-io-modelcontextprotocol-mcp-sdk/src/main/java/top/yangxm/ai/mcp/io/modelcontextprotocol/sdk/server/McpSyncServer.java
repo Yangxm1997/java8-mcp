@@ -320,7 +320,7 @@ public class McpSyncServer {
             this.asyncBuilder.completionSpecs(asyncCompletionSpecs);
         }
 
-        public McpSyncServer buildSingleSessionMcpServer(McpServerSessionTransportProvider sessionTransportProvider) {
+        public McpSyncServer buildSingleSessionMcpServer(McpServerTransportProvider sessionTransportProvider) {
             this.beforeBuild();
             McpAsyncServer asyncServer = this.asyncBuilder.buildSingleSessionMcpServer(sessionTransportProvider);
             return new McpSyncServer(asyncServer, this.immediateExecution);

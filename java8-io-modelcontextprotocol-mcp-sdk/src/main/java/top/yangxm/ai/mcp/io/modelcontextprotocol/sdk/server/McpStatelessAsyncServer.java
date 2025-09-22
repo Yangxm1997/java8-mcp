@@ -523,7 +523,7 @@ public class McpStatelessAsyncServer {
     }
 
     public final static class Builder {
-        private McpServerTransportProvider transportProvider;
+        private McpServerTransportProviderBase transportProvider;
         private JsonMapper jsonMapper;
         private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
         private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();

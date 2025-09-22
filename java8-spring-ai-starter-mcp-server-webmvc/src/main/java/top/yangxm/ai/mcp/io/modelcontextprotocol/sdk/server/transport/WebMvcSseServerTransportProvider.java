@@ -18,9 +18,8 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.exception.McpError;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCMessage;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSession;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionFactory;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransport;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransport;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpTransportContextExtractor;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 @SuppressWarnings("unused")
-public class WebMvcSseServerTransportProvider implements McpServerSessionTransportProvider {
+public class WebMvcSseServerTransportProvider implements McpServerTransportProvider {
     private static final Logger logger = LoggerFactoryHolder.getLogger(WebMvcSseServerTransportProvider.class);
     public static final String DEFAULT_SSE_ENDPOINT = "/sse";
     public static final String MESSAGE_EVENT_TYPE = "message";
@@ -46,7 +45,7 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
     private final McpTransportContextExtractor<ServerRequest> contextExtractor;
     private final KeepAliveScheduler keepAliveScheduler;
     private volatile boolean isClosing = false;
-    private McpServerSessionFactory sessionFactory;
+    private McpServerSession.Factory sessionFactory;
 
     private WebMvcSseServerTransportProvider(JsonMapper jsonMapper, String baseUrl, String messageEndpoint,
                                              String sseEndpoint, Duration keepAliveInterval,
@@ -94,7 +93,7 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
     }
 
     @Override
-    public void setSessionFactory(McpServerSessionFactory sessionFactory) {
+    public void setSessionFactory(McpServerSession.Factory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
@@ -149,7 +148,7 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
                     sessions.remove(sessionId);
                 });
 
-                WebMvcMcpSessionTransport sessionTransport = new WebMvcMcpSessionTransport(sessionId, sseBuilder);
+                WebMvcMcpTransport sessionTransport = new WebMvcMcpTransport(sessionId, sseBuilder);
                 McpServerSession session = sessionFactory.create(sessionTransport);
                 this.sessions.put(sessionId, session);
 
@@ -200,12 +199,12 @@ public class WebMvcSseServerTransportProvider implements McpServerSessionTranspo
         }
     }
 
-    private class WebMvcMcpSessionTransport implements McpServerSessionTransport {
+    private class WebMvcMcpTransport implements McpServerTransport {
         private final String sessionId;
         private final ServerResponse.SseBuilder sseBuilder;
         private final ReentrantLock sseBuilderLock = new ReentrantLock();
 
-        WebMvcMcpSessionTransport(String sessionId, ServerResponse.SseBuilder sseBuilder) {
+        WebMvcMcpTransport(String sessionId, ServerResponse.SseBuilder sseBuilder) {
             this.sessionId = sessionId;
             this.sseBuilder = sseBuilder;
             logger.debug("Session transport {} initialized with SSE builder", sessionId);

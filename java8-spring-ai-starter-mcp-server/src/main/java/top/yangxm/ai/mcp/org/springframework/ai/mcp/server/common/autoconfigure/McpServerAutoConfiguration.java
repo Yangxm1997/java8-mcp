@@ -30,8 +30,8 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.Sy
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncPromptSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncResourceSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncToolSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerSessionTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProviderBase;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpSyncServer;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpSyncServerExchange;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.StdioServerTransportProvider;
@@ -69,7 +69,7 @@ public class McpServerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public McpServerTransportProvider stdioServerTransport() {
+    public McpServerTransportProviderBase stdioServerTransport() {
         return new StdioServerTransportProvider();
     }
 
@@ -86,7 +86,7 @@ public class McpServerAutoConfiguration {
             havingValue = "SYNC",
             matchIfMissing = true
     )
-    public McpSyncServer mcpSyncServer(McpServerTransportProvider transportProvider,
+    public McpSyncServer mcpSyncServer(McpServerTransportProviderBase transportProvider,
                                        ServerCapabilities.Builder capabilitiesBuilder,
                                        McpServerProperties serverProperties,
                                        McpServerChangeNotificationProperties changeNotificationProperties,
@@ -160,7 +160,7 @@ public class McpServerAutoConfiguration {
         }
 
         // TODO McpStreamableServer
-        return serverBuilder.buildSingleSessionMcpServer((McpServerSessionTransportProvider) transportProvider);
+        return serverBuilder.buildSingleSessionMcpServer((McpServerTransportProvider) transportProvider);
     }
 
     @Bean
@@ -169,7 +169,7 @@ public class McpServerAutoConfiguration {
             name = "type",
             havingValue = "ASYNC"
     )
-    public McpAsyncServer mcpAsyncServer(McpServerTransportProvider transportProvider,
+    public McpAsyncServer mcpAsyncServer(McpServerTransportProviderBase transportProvider,
                                          ServerCapabilities.Builder capabilitiesBuilder,
                                          McpServerProperties serverProperties,
                                          McpServerChangeNotificationProperties changeNotificationProperties,
@@ -243,7 +243,7 @@ public class McpServerAutoConfiguration {
         serverBuilder.requestTimeout(serverProperties.getRequestTimeout());
 
         // TODO McpStreamableServer
-        return serverBuilder.buildSingleSessionMcpServer((McpServerSessionTransportProvider) transportProvider);
+        return serverBuilder.buildSingleSessionMcpServer((McpServerTransportProvider) transportProvider);
     }
 
 

@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 public class McpAsyncServer {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpAsyncServer.class);
 
-    private final McpServerTransportProvider transportProvider;
+    private final McpServerTransportProviderBase transportProvider;
     private final JsonMapper jsonMapper;
     private final McpUriTemplateManager.Factory uriTemplateManagerFactory;
     private final JsonSchemaValidator jsonSchemaValidator;
@@ -72,7 +72,7 @@ public class McpAsyncServer {
     private final ConcurrentHashMap<CompleteReference, AsyncCompletionSpec> completionSpecs = new ConcurrentHashMap<>();
     private List<String> protocolVersions;
 
-    private McpAsyncServer(McpServerSessionTransportProvider sessionTransportProvider,
+    private McpAsyncServer(McpServerTransportProvider nonStreamTransportProvider,
                            JsonMapper jsonMapper,
                            ServerCapabilities serverCapabilities,
                            Implementation serverInfo,
@@ -86,7 +86,7 @@ public class McpAsyncServer {
                            Duration requestTimeout,
                            McpUriTemplateManager.Factory uriTemplateManagerFactory,
                            JsonSchemaValidator jsonSchemaValidator) {
-        Assert.notNull(sessionTransportProvider, "sessionTransportProvider must not be null");
+        Assert.notNull(nonStreamTransportProvider, "nonStreamTransportProvider must not be null");
         Assert.notNull(jsonMapper, "jsonMapper must not be null");
         Assert.notNull(serverCapabilities, "serverCapabilities must not be null");
         Assert.notNull(serverInfo, "serverInfo must not be null");
@@ -100,7 +100,7 @@ public class McpAsyncServer {
         Assert.notNull(requestTimeout, "requestTimeout must not be null");
         Assert.notNull(jsonSchemaValidator, "jsonSchemaValidator must not be null");
 
-        this.transportProvider = sessionTransportProvider;
+        this.transportProvider = nonStreamTransportProvider;
         this.jsonMapper = jsonMapper;
         this.serverInfo = serverInfo;
         this.serverCapabilities = serverCapabilities.mutate().logging().build();
@@ -122,9 +122,9 @@ public class McpAsyncServer {
         Map<String, McpServerRequestHandler<?>> requestHandlers = prepareRequestHandlers();
         Map<String, McpServerNotificationHandler> notificationHandlers = prepareNotificationHandlers(rootsChangeConsumers);
 
-        this.protocolVersions = sessionTransportProvider.protocolVersions();
+        this.protocolVersions = nonStreamTransportProvider.protocolVersions();
 
-        sessionTransportProvider.setSessionFactory(transport -> new McpServerSession(requestTimeout, transport,
+        nonStreamTransportProvider.setSessionFactory(transport -> new McpServerSession(requestTimeout, transport,
                 this::asyncInitializeRequestHandler,
                 requestHandlers, notificationHandlers)
         );
@@ -603,7 +603,7 @@ public class McpAsyncServer {
     }
 
     public final static class Builder {
-        private McpServerTransportProvider transportProvider;
+        private McpServerTransportProviderBase transportProvider;
         private JsonMapper jsonMapper;
         private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
         private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();
@@ -782,8 +782,8 @@ public class McpAsyncServer {
             return this.rootsChangeConsumers(Arrays.asList(rootsChangeConsumers));
         }
 
-        public McpAsyncServer buildSingleSessionMcpServer(McpServerSessionTransportProvider sessionTransportProvider) {
-            Assert.notNull(sessionTransportProvider, "sessionTransportProvider must not be null");
+        public McpAsyncServer buildSingleSessionMcpServer(McpServerTransportProvider nonStreamTransportProvider) {
+            Assert.notNull(nonStreamTransportProvider, "nonStreamTransportProvider must not be null");
             if (this.serverCapabilities == null) {
                 this.serverCapabilities = new ServerCapabilities(
                         null, // completions
@@ -793,7 +793,7 @@ public class McpAsyncServer {
                         !Maps.isEmpty(resourceSpecs) ? new ServerCapabilities.ResourceCapabilities(false, false) : null,
                         !Maps.isEmpty(toolSpecs) ? new ServerCapabilities.ToolCapabilities(false) : null);
             }
-            return new McpAsyncServer(sessionTransportProvider, jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
+            return new McpAsyncServer(nonStreamTransportProvider, jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
                     this.serverCapabilities, this.serverInfo, this.instructions,
                     this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
                     this.rootsChangeConsumers, this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);
