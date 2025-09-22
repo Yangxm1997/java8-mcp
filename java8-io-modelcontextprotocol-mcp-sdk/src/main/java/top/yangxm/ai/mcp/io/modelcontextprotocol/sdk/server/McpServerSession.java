@@ -186,7 +186,8 @@ public class McpServerSession implements McpLoggableSession {
     @Override
     public <T> Mono<T> sendRequest(String method, Object params, TypeRef<T> typeRef) {
         String requestId = this.generateRequestId();
-        logger.debug("[{}] Sending request, method: {}, params: {}, type: {}, requestId: {}", this.shortId, method, params, typeRef.getType(), requestId);
+        logger.debug("[{}] Sending request, method: {}, params: {}, type: {}, requestId: {}",
+                this.shortId, method, params, typeRef.getType(), requestId);
         return Mono.<JSONRPCResponse>create(sink -> {
             this.pendingResponses.put(requestId, sink);
             JSONRPCRequest request = JSONRPCRequest.of(method, requestId, params);
@@ -210,7 +211,7 @@ public class McpServerSession implements McpLoggableSession {
 
     @Override
     public Mono<Void> sendNotification(String method, Object params) {
-        logger.debug("[{}] Sending notification, method: {}, params: {}", this.id, method, params);
+        logger.debug("[{}] Sending notification, method: {}, params: {}", this.shortId, method, params);
         return this.sessionTransport.sendMessage(JSONRPCNotification.of(method, params));
     }
 
