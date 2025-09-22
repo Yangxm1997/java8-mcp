@@ -612,15 +612,14 @@ public class McpAsyncServer {
     }
 
     public final static class Builder {
-        private final static Implementation DEFAULT_SERVER_INFO = new Implementation("mcp-server", "1.0.0");
         private McpServerTransportProvider transportProvider;
         private JsonMapper jsonMapper;
         private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
         private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();
         private ServerCapabilities serverCapabilities = null;
-        private Implementation serverInfo = DEFAULT_SERVER_INFO;
+        private Implementation serverInfo = McpServerConst.DEFAULT_SERVER_INFO;
         private String instructions = "";
-        private Duration requestTimeout = Duration.ofHours(10);
+        private Duration requestTimeout = McpServerConst.DEFAULT_REQUEST_TIMEOUT;
         private final Map<String, AsyncToolSpec> toolSpecs = new HashMap<>();
         private final Map<String, AsyncResourceSpec> resourceSpecs = new HashMap<>();
         private final Map<String, ResourceTemplate> resourceTemplates = new HashMap<>();

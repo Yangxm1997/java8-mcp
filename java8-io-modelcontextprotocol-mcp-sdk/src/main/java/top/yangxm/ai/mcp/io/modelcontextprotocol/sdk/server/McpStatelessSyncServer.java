@@ -1,24 +1,20 @@
 package top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server;
 
-import reactor.core.publisher.Mono;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.schema.JsonSchemaValidator;
 import top.yangxm.ai.mcp.commons.util.Assert;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.common.McpUriTemplateManager;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.CompleteReference;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Implementation;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.ResourceTemplate;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.ResourcesUpdatedNotification;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Root;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.ServerCapabilities;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncCompletionSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncPromptSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncResourceSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncCompletionSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncPromptSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncResourceSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncToolSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.AsyncCompletionSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.AsyncPromptSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.AsyncResourceSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.AsyncToolSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.SyncCompletionSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.SyncPromptSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.SyncResourceSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.SyncToolSpec;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,15 +22,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 
 @SuppressWarnings("unused")
-public class McpSyncServer {
-    private final McpAsyncServer asyncServer;
+public class McpStatelessSyncServer {
+    private final McpStatelessAsyncServer asyncServer;
     private final boolean immediateExecution;
 
-    private McpSyncServer(McpAsyncServer asyncServer, boolean immediateExecution) {
+    private McpStatelessSyncServer(McpStatelessAsyncServer asyncServer, boolean immediateExecution) {
         Assert.notNull(asyncServer, "Async server must not be null");
         this.asyncServer = asyncServer;
         this.immediateExecution = immediateExecution;
@@ -48,7 +42,7 @@ public class McpSyncServer {
         return this.asyncServer.serverInfo();
     }
 
-    public McpAsyncServer getAsyncServer() {
+    public McpStatelessAsyncServer getAsyncServer() {
         return this.asyncServer;
     }
 
@@ -60,10 +54,6 @@ public class McpSyncServer {
         this.asyncServer.removeTool(toolName).block();
     }
 
-    public void notifyToolsListChanged() {
-        this.asyncServer.notifyToolsListChanged().block();
-    }
-
     public void addResource(SyncResourceSpec resourceSpec) {
         this.asyncServer.addResource(AsyncResourceSpec.fromSync(resourceSpec, this.immediateExecution)).block();
     }
@@ -72,24 +62,12 @@ public class McpSyncServer {
         this.asyncServer.removeResource(resourceUri).block();
     }
 
-    public void notifyResourcesListChanged() {
-        this.asyncServer.notifyResourcesListChanged().block();
-    }
-
-    public void notifyResourcesUpdated(ResourcesUpdatedNotification resourcesUpdatedNotification) {
-        this.asyncServer.notifyResourcesUpdated(resourcesUpdatedNotification).block();
-    }
-
     public void addPrompt(SyncPromptSpec promptSpec) {
         this.asyncServer.addPrompt(AsyncPromptSpec.fromSync(promptSpec, this.immediateExecution)).block();
     }
 
     public void removePrompt(String promptName) {
         this.asyncServer.removePrompt(promptName).block();
-    }
-
-    public void notifyPromptsListChanged() {
-        this.asyncServer.notifyPromptsListChanged().block();
     }
 
     public void closeGracefully() {
@@ -109,7 +87,7 @@ public class McpSyncServer {
     }
 
     public final static class Builder {
-        private final McpAsyncServer.Builder asyncBuilder;
+        private final McpStatelessAsyncServer.Builder asyncBuilder;
         private final List<SyncToolSpec> toolSpecs = new ArrayList<>();
         private final List<SyncResourceSpec> resourceSpecs = new ArrayList<>();
         private final List<SyncPromptSpec> promptSpecs = new ArrayList<>();
@@ -117,7 +95,7 @@ public class McpSyncServer {
         private boolean immediateExecution = false;
 
         private Builder() {
-            this.asyncBuilder = McpAsyncServer.builder();
+            this.asyncBuilder = McpStatelessAsyncServer.builder();
         }
 
         public Builder immediateExecution(boolean immediateExecution) {
@@ -215,12 +193,12 @@ public class McpSyncServer {
             return this.resourceSpecs(Arrays.asList(resourceSpecs));
         }
 
-        public Builder resourceTemplates(List<ResourceTemplate> resourceTemplates) {
+        public Builder resourceTemplates(List<McpSchema.ResourceTemplate> resourceTemplates) {
             this.asyncBuilder.resourceTemplates(resourceTemplates);
             return this;
         }
 
-        public Builder resourceTemplates(ResourceTemplate... resourceTemplates) {
+        public Builder resourceTemplates(McpSchema.ResourceTemplate... resourceTemplates) {
             return this.resourceTemplates(Arrays.asList(resourceTemplates));
         }
 
@@ -251,7 +229,7 @@ public class McpSyncServer {
 
         public Builder completionSpecs(List<SyncCompletionSpec> completionSpecs) {
             if (completionSpecs != null) {
-                Set<CompleteReference> referenceKeys = new HashSet<>();
+                Set<McpSchema.CompleteReference> referenceKeys = new HashSet<>();
                 for (SyncCompletionSpec completionSpec : this.completionSpecs) {
                     referenceKeys.add(completionSpec.referenceKey());
                 }
@@ -273,26 +251,6 @@ public class McpSyncServer {
             return this.completionSpecs(Arrays.asList(completionSpecs));
         }
 
-        public Builder rootsChangeConsumers(List<BiConsumer<McpSyncServerExchange, List<Root>>> rootsChangeConsumers) {
-            if (rootsChangeConsumers != null) {
-                List<BiFunction<McpAsyncServerExchange, List<Root>, Mono<Void>>> asyncRootsChangeConsumers = new ArrayList<>();
-                for (BiConsumer<McpSyncServerExchange, List<Root>> rootsChangeConsumer : rootsChangeConsumers) {
-                    if (rootsChangeConsumer == null) {
-                        continue;
-                    }
-                    asyncRootsChangeConsumers.add((exchange, roots) -> Mono.fromRunnable(
-                            () -> rootsChangeConsumer.accept(new McpSyncServerExchange(exchange), roots))
-                    );
-                }
-                this.asyncBuilder.rootsChangeConsumers(asyncRootsChangeConsumers);
-            }
-            return this;
-        }
-
-        @SafeVarargs
-        public final Builder rootsChangeConsumers(BiConsumer<McpSyncServerExchange, List<Root>>... rootsChangeConsumers) {
-            return this.rootsChangeConsumers(Arrays.asList(rootsChangeConsumers));
-        }
 
         private void beforeBuild() {
             final List<AsyncToolSpec> asyncToolSpecs = new ArrayList<>();
@@ -320,10 +278,10 @@ public class McpSyncServer {
             this.asyncBuilder.completionSpecs(asyncCompletionSpecs);
         }
 
-        public McpSyncServer buildSingleSessionMcpServer(McpServerSessionTransportProvider sessionTransportProvider) {
+        public McpStatelessSyncServer build(McpStatelessServerTransport transportProvider) {
             this.beforeBuild();
-            McpAsyncServer asyncServer = this.asyncBuilder.buildSingleSessionMcpServer(sessionTransportProvider);
-            return new McpSyncServer(asyncServer, this.immediateExecution);
+            McpStatelessAsyncServer asyncServer = this.asyncBuilder.build(transportProvider);
+            return new McpStatelessSyncServer(asyncServer, this.immediateExecution);
         }
     }
 }

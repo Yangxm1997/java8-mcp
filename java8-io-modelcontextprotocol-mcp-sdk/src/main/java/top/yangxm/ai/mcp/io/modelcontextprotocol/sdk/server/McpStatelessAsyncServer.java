@@ -41,6 +41,7 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFe
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 public class McpStatelessAsyncServer {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpStatelessAsyncServer.class);
 
@@ -94,7 +96,7 @@ public class McpStatelessAsyncServer {
         this.transportProvider = transportProvider;
         this.jsonMapper = jsonMapper;
         this.serverInfo = serverInfo;
-        this.serverCapabilities = serverCapabilities.mutate().logging().build();
+        this.serverCapabilities = serverCapabilities;
         this.instructions = instructions;
         toolSpecs.forEach((key, val) -> this.toolSpecs.put(key, val.withCallHandler(
                 StructuredOutputCallToolHandler.withStructuredOutputHandling(
@@ -516,4 +518,188 @@ public class McpStatelessAsyncServer {
         this.transportProvider.close();
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public final static class Builder {
+        private McpServerTransportProvider transportProvider;
+        private JsonMapper jsonMapper;
+        private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
+        private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();
+        private ServerCapabilities serverCapabilities = null;
+        private Implementation serverInfo = McpServerConst.DEFAULT_SERVER_INFO;
+        private String instructions = "";
+        private Duration requestTimeout = McpServerConst.DEFAULT_REQUEST_TIMEOUT;
+        private final Map<String, AsyncToolSpec> toolSpecs = new HashMap<>();
+        private final Map<String, AsyncResourceSpec> resourceSpecs = new HashMap<>();
+        private final Map<String, ResourceTemplate> resourceTemplates = new HashMap<>();
+        private final Map<String, AsyncPromptSpec> promptSpecs = new HashMap<>();
+        private final Map<CompleteReference, AsyncCompletionSpec> completionSpecs = new HashMap<>();
+
+        private Builder() {
+        }
+
+        public Builder jsonMapper(JsonMapper jsonMapper) {
+            Assert.notNull(jsonMapper, "jsonMapper must not be null");
+            this.jsonMapper = jsonMapper;
+            return this;
+        }
+
+        public Builder uriTemplateManagerFactory(McpUriTemplateManager.Factory uriTemplateManagerFactory) {
+            Assert.notNull(uriTemplateManagerFactory, "uriTemplateManagerFactory must not be null");
+            this.uriTemplateManagerFactory = uriTemplateManagerFactory;
+            return this;
+        }
+
+        public Builder jsonSchemaValidator(JsonSchemaValidator jsonSchemaValidator) {
+            Assert.notNull(jsonSchemaValidator, "jsonSchemaValidator must not be null");
+            this.jsonSchemaValidator = jsonSchemaValidator;
+            return this;
+        }
+
+        public Builder serverCapabilities(ServerCapabilities serverCapabilities) {
+            Assert.notNull(serverCapabilities, "serverCapabilities must not be null");
+            this.serverCapabilities = serverCapabilities;
+            return this;
+        }
+
+        public Builder serverInfo(Implementation serverInfo) {
+            Assert.notNull(serverInfo, "serverInfo must not be null");
+            this.serverInfo = serverInfo;
+            return this;
+        }
+
+        public Builder serverInfo(String name, String version) {
+            Assert.hasText(name, "Name must not be null or empty");
+            Assert.hasText(version, "Version must not be null or empty");
+            this.serverInfo = new Implementation(name, version);
+            return this;
+        }
+
+        public Builder instructions(String instructions) {
+            if (instructions != null) {
+                this.instructions = instructions;
+            }
+            return this;
+        }
+
+        public Builder requestTimeout(Duration requestTimeout) {
+            Assert.notNull(requestTimeout, "requestTimeout must not be null");
+            this.requestTimeout = requestTimeout;
+            return this;
+        }
+
+        public Builder toolSpecs(List<AsyncToolSpec> toolSpecs) {
+            if (toolSpecs != null) {
+                for (AsyncToolSpec toolSpec : toolSpecs) {
+                    if (toolSpec == null) {
+                        continue;
+                    }
+                    final String toolName = toolSpec.tool().name();
+                    if (this.toolSpecs.putIfAbsent(toolName, toolSpec) != null) {
+                        throw new IllegalStateException("Duplicate tool name: " + toolName);
+                    }
+                }
+            }
+            return this;
+        }
+
+        public Builder toolSpecs(AsyncToolSpec... toolSpecs) {
+            return this.toolSpecs(Arrays.asList(toolSpecs));
+        }
+
+        public Builder resourceSpecs(List<AsyncResourceSpec> resourceSpecs) {
+            if (resourceSpecs != null) {
+                for (AsyncResourceSpec resourceSpec : resourceSpecs) {
+                    if (resourceSpec == null) {
+                        continue;
+                    }
+                    final String uri = resourceSpec.resource().uri();
+                    if (this.resourceSpecs.putIfAbsent(uri, resourceSpec) != null) {
+                        throw new IllegalStateException("Duplicate resource uri: " + uri);
+                    }
+                }
+            }
+            return this;
+        }
+
+        public Builder resourceSpecs(AsyncResourceSpec... resourceSpecs) {
+            return this.resourceSpecs(Arrays.asList(resourceSpecs));
+        }
+
+        public Builder resourceTemplates(List<ResourceTemplate> resourceTemplates) {
+            if (resourceTemplates != null) {
+                for (ResourceTemplate resourceTemplate : resourceTemplates) {
+                    if (resourceTemplate == null) {
+                        continue;
+                    }
+                    final String uri = resourceTemplate.getUriTemplate();
+                    if (this.resourceTemplates.putIfAbsent(uri, resourceTemplate) != null) {
+                        throw new IllegalStateException("Duplicate resource template uri: " + uri);
+                    }
+                }
+            }
+            return this;
+        }
+
+        public Builder resourceTemplates(ResourceTemplate... resourceTemplates) {
+            return this.resourceTemplates(Arrays.asList(resourceTemplates));
+        }
+
+        public Builder promptSpecs(List<AsyncPromptSpec> promptSpecs) {
+            if (promptSpecs != null) {
+                for (AsyncPromptSpec promptSpec : promptSpecs) {
+                    if (promptSpec == null) {
+                        continue;
+                    }
+                    final String promptName = promptSpec.prompt().name();
+                    if (this.promptSpecs.putIfAbsent(promptName, promptSpec) != null) {
+                        throw new IllegalStateException("Duplicate prompt name: " + promptName);
+                    }
+                }
+            }
+            return this;
+        }
+
+        public Builder promptSpecs(AsyncPromptSpec... promptSpecs) {
+            return this.promptSpecs(Arrays.asList(promptSpecs));
+        }
+
+        public Builder completionSpecs(List<AsyncCompletionSpec> completionSpecs) {
+            if (completionSpecs != null) {
+                for (AsyncCompletionSpec completionSpec : completionSpecs) {
+                    if (completionSpec == null) {
+                        continue;
+                    }
+                    if (this.completionSpecs.putIfAbsent(completionSpec.referenceKey(), completionSpec) != null) {
+                        throw new IllegalStateException("Duplicate completion reference key: " + completionSpec.referenceKey());
+                    }
+                }
+            }
+            return this;
+        }
+
+        public Builder completionSpecs(AsyncCompletionSpec... completionSpecs) {
+            return this.completionSpecs(Arrays.asList(completionSpecs));
+        }
+
+
+        public McpStatelessAsyncServer build(McpStatelessServerTransport transportProvider) {
+            Assert.notNull(transportProvider, "transportProvider must not be null");
+            if (this.serverCapabilities == null) {
+                this.serverCapabilities = new ServerCapabilities(
+                        null, // completions
+                        null, // experimental
+                        null, // logging
+                        !Maps.isEmpty(promptSpecs) ? new ServerCapabilities.PromptCapabilities(false) : null,
+                        !Maps.isEmpty(resourceSpecs) ? new ServerCapabilities.ResourceCapabilities(false, false) : null,
+                        !Maps.isEmpty(toolSpecs) ? new ServerCapabilities.ToolCapabilities(false) : null);
+            }
+            return new McpStatelessAsyncServer(transportProvider, jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
+                    this.serverCapabilities, this.serverInfo, this.instructions,
+                    this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
+                    this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);
+        }
+    }
 }
