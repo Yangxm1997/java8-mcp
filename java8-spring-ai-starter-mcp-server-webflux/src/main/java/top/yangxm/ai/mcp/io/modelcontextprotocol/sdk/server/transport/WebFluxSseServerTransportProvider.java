@@ -33,10 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("unused")
 public class WebFluxSseServerTransportProvider implements McpServerTransportProvider {
     private static final Logger logger = LoggerFactoryHolder.getLogger(WebFluxSseServerTransportProvider.class);
-    public static final String DEFAULT_BASE_URL = "";
-    public static final String DEFAULT_SSE_ENDPOINT = "/sse";
-    public static final String MESSAGE_EVENT_TYPE = "message";
-    public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 
     private final JsonMapper jsonMapper;
     private final String baseUrl;
@@ -111,7 +107,7 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
 
                     logger.debug("Sending initial endpoint event to session: {}", sessionId);
                     sink.next(ServerSentEvent.builder()
-                            .event(ENDPOINT_EVENT_TYPE)
+                            .event(McpTransportConst.ENDPOINT_EVENT_TYPE)
                             .data(this.baseUrl + this.messageEndpoint + "?sessionId=" + sessionId)
                             .build());
                     sink.onCancel(() -> {
@@ -213,7 +209,7 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
                 }
             }).doOnNext(jsonText -> {
                 ServerSentEvent<Object> event = ServerSentEvent.builder()
-                        .event(MESSAGE_EVENT_TYPE)
+                        .event(McpTransportConst.MESSAGE_EVENT_TYPE)
                         .data(jsonText)
                         .build();
                 sink.next(event);
@@ -254,12 +250,15 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
     }
 
     public static class Builder {
-        private JsonMapper jsonMapper;
-        private String baseUrl = DEFAULT_BASE_URL;
+        private JsonMapper jsonMapper = JsonMapper.getDefault();
+        private String baseUrl = McpTransportConst.DEFAULT_BASE_URL;
         private String messageEndpoint;
-        private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
+        private String sseEndpoint = McpTransportConst.DEFAULT_SSE_ENDPOINT;
         private McpTransportContextExtractor<ServerRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
         private Duration keepAliveInterval;
+
+        private Builder() {
+        }
 
         public Builder jsonMapper(JsonMapper jsonMapper) {
             Assert.notNull(jsonMapper, "JsonMapper must not be null");
@@ -274,13 +273,13 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
         }
 
         public Builder messageEndpoint(String messageEndpoint) {
-            Assert.hasText(messageEndpoint, "Message endpoint must not be empty");
+            Assert.notNull(messageEndpoint, "Message endpoint must not be empty");
             this.messageEndpoint = messageEndpoint;
             return this;
         }
 
         public Builder sseEndpoint(String sseEndpoint) {
-            Assert.hasText(sseEndpoint, "SSE endpoint must not be empty");
+            Assert.notNull(sseEndpoint, "SSE endpoint must not be empty");
             this.sseEndpoint = sseEndpoint;
             return this;
         }
@@ -297,11 +296,9 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
         }
 
         public WebFluxSseServerTransportProvider build() {
-            if (messageEndpoint == null) {
-                throw new IllegalStateException("MessageEndpoint must be set");
-            }
-            return new WebFluxSseServerTransportProvider(jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
-                    baseUrl, messageEndpoint, sseEndpoint, keepAliveInterval, contextExtractor);
+            Assert.notNull(this.messageEndpoint, "Message endpoint must be set");
+            return new WebFluxSseServerTransportProvider(jsonMapper, baseUrl, messageEndpoint, sseEndpoint,
+                    keepAliveInterval, contextExtractor);
         }
     }
 }
