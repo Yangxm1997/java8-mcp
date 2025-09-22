@@ -42,6 +42,7 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.As
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncPromptSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncResourceSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStreamableServerSession.DefaultMcpStreamableServerSessionFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -127,6 +128,63 @@ public class McpAsyncServer {
         nonStreamTransportProvider.setSessionFactory(transport -> new McpServerSession(requestTimeout, transport,
                 this::asyncInitializeRequestHandler,
                 requestHandlers, notificationHandlers)
+        );
+    }
+
+    private McpAsyncServer(McpStreamableServerTransportProvider streamableTransportProvider,
+                           JsonMapper jsonMapper,
+                           ServerCapabilities serverCapabilities,
+                           Implementation serverInfo,
+                           String instructions,
+                           Map<String, AsyncToolSpec> toolSpecs,
+                           Map<String, AsyncResourceSpec> resourceSpecs,
+                           Map<String, ResourceTemplate> resourceTemplates,
+                           Map<String, AsyncPromptSpec> promptSpecs,
+                           Map<CompleteReference, AsyncCompletionSpec> completionSpecs,
+                           List<BiFunction<McpAsyncServerExchange, List<Root>, Mono<Void>>> rootsChangeConsumers,
+                           Duration requestTimeout,
+                           McpUriTemplateManager.Factory uriTemplateManagerFactory,
+                           JsonSchemaValidator jsonSchemaValidator) {
+        Assert.notNull(streamableTransportProvider, "streamableTransportProvider must not be null");
+        Assert.notNull(jsonMapper, "jsonMapper must not be null");
+        Assert.notNull(serverCapabilities, "serverCapabilities must not be null");
+        Assert.notNull(serverInfo, "serverInfo must not be null");
+        Assert.notNull(instructions, "instructions must not be null");
+        Assert.notNull(toolSpecs, "toolSpecs must not be null");
+        Assert.notNull(resourceSpecs, "resourceSpecs must not be null");
+        Assert.notNull(resourceTemplates, "resourceTemplates must not be null");
+        Assert.notNull(promptSpecs, "promptSpecs must not be null");
+        Assert.notNull(completionSpecs, "completionSpecs must not be null");
+        Assert.notNull(rootsChangeConsumers, "rootsChangeConsumers must not be null");
+        Assert.notNull(requestTimeout, "requestTimeout must not be null");
+        Assert.notNull(jsonSchemaValidator, "jsonSchemaValidator must not be null");
+
+        this.transportProvider = streamableTransportProvider;
+        this.jsonMapper = jsonMapper;
+        this.serverInfo = serverInfo;
+        this.serverCapabilities = serverCapabilities.mutate().logging().build();
+        this.instructions = instructions;
+        toolSpecs.forEach((key, val) -> this.toolSpecs.put(key, val.withCallHandler(
+                StructuredOutputCallToolHandler.withStructuredOutputHandling(
+                        jsonSchemaValidator,
+                        val.tool().outputSchema(),
+                        val.callHandler()
+                )
+        )));
+        this.resourceSpecs.putAll(resourceSpecs);
+        this.resourceTemplates.putAll(resourceTemplates);
+        this.promptSpecs.putAll(promptSpecs);
+        this.completionSpecs.putAll(completionSpecs);
+        this.uriTemplateManagerFactory = (uriTemplateManagerFactory != null) ? uriTemplateManagerFactory : McpUriTemplateManager.DEFAULT_FACTORY;
+        this.jsonSchemaValidator = jsonSchemaValidator;
+
+        Map<String, McpServerRequestHandler<?>> requestHandlers = prepareRequestHandlers();
+        Map<String, McpServerNotificationHandler> notificationHandlers = prepareNotificationHandlers(rootsChangeConsumers);
+
+        this.protocolVersions = streamableTransportProvider.protocolVersions();
+
+        streamableTransportProvider.setSessionFactory(new DefaultMcpStreamableServerSessionFactory(requestTimeout,
+                this::asyncInitializeRequestHandler, requestHandlers, notificationHandlers)
         );
     }
 
@@ -604,7 +662,7 @@ public class McpAsyncServer {
 
     public final static class Builder {
         private McpServerTransportProviderBase transportProvider;
-        private JsonMapper jsonMapper;
+        private JsonMapper jsonMapper = JsonMapper.getDefault();
         private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
         private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();
         private ServerCapabilities serverCapabilities = null;
@@ -793,7 +851,7 @@ public class McpAsyncServer {
                         !Maps.isEmpty(resourceSpecs) ? new ServerCapabilities.ResourceCapabilities(false, false) : null,
                         !Maps.isEmpty(toolSpecs) ? new ServerCapabilities.ToolCapabilities(false) : null);
             }
-            return new McpAsyncServer(nonStreamTransportProvider, jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
+            return new McpAsyncServer(nonStreamTransportProvider, jsonMapper,
                     this.serverCapabilities, this.serverInfo, this.instructions,
                     this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
                     this.rootsChangeConsumers, this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);

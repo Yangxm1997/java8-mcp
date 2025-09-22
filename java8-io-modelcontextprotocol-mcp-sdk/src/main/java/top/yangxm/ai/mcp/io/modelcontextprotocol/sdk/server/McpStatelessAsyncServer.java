@@ -524,7 +524,7 @@ public class McpStatelessAsyncServer {
 
     public final static class Builder {
         private McpServerTransportProviderBase transportProvider;
-        private JsonMapper jsonMapper;
+        private JsonMapper jsonMapper = JsonMapper.getDefault();
         private McpUriTemplateManager.Factory uriTemplateManagerFactory = McpUriTemplateManager.DEFAULT_FACTORY;
         private JsonSchemaValidator jsonSchemaValidator = JsonSchemaValidator.getDefault();
         private ServerCapabilities serverCapabilities = null;
@@ -696,7 +696,7 @@ public class McpStatelessAsyncServer {
                         !Maps.isEmpty(resourceSpecs) ? new ServerCapabilities.ResourceCapabilities(false, false) : null,
                         !Maps.isEmpty(toolSpecs) ? new ServerCapabilities.ToolCapabilities(false) : null);
             }
-            return new McpStatelessAsyncServer(transportProvider, jsonMapper == null ? JsonMapper.getDefault() : jsonMapper,
+            return new McpStatelessAsyncServer(transportProvider, jsonMapper,
                     this.serverCapabilities, this.serverInfo, this.instructions,
                     this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
                     this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);
