@@ -5,11 +5,11 @@ import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
 import top.yangxm.ai.mcp.commons.util.ClassUtils;
 import top.yangxm.ai.mcp.commons.util.Utils;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Tool;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.SyncToolSpec;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpTool;
-import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.AsyncMcpToolMethodCallback;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.ReturnMode;
-import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ReactiveUtils;
+import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.SyncStatelessMcpToolMethodCallback;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ToolJsonSchemaGenerator;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.provider.ProviderUtils;
 
@@ -19,16 +19,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
-public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
-    private static final Logger logger = LoggerFactoryHolder.getLogger(AsyncMcpToolProvider.class);
+public class SyncStatelessMcpToolProvider extends AbstractMcpToolProvider {
+    private static final Logger logger = LoggerFactoryHolder.getLogger(SyncStatelessMcpToolProvider.class);
 
-    public AsyncMcpToolProvider(List<Object> toolObjects) {
+    public SyncStatelessMcpToolProvider(List<Object> toolObjects) {
         super(toolObjects);
     }
 
-    public List<AsyncToolSpec> getToolSpecs() {
-        List<AsyncToolSpec> toolSpecs = this.toolObjects.stream()
+    public List<SyncToolSpec> getToolSpecs() {
+        List<SyncToolSpec> toolSpecs = this.toolObjects.stream()
                 .map(toolObject -> Stream.of(this.doGetClassMethods(toolObject))
                         .filter(method -> method.isAnnotationPresent(McpTool.class))
                         .filter(ProviderUtils.isNotReactiveReturnType)
@@ -39,7 +38,7 @@ public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
                                     toolJavaAnnotation.name() : mcpToolMethod.getName();
                             String toolDescription = toolJavaAnnotation.description();
                             String inputSchema = ToolJsonSchemaGenerator.generateForMethodInput(mcpToolMethod);
-                            McpSchema.Tool.Builder toolBuilder = McpSchema.Tool.builder()
+                            Tool.Builder toolBuilder = Tool.builder()
                                     .name(toolName)
                                     .description(toolDescription)
                                     .inputSchema(this.getJsonMapper(), inputSchema);
@@ -67,29 +66,32 @@ public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
                             }
                             toolBuilder.title(title);
 
+                            Class<?> methodReturnType = mcpToolMethod.getReturnType();
                             if (toolJavaAnnotation.generateOutputSchema()
-                                    && !ReactiveUtils.isReactiveReturnTypeOfVoid(mcpToolMethod)
-                                    && !ReactiveUtils.isReactiveReturnTypeOfCallToolResult(mcpToolMethod)) {
-                                ReactiveUtils.getReactiveReturnTypeArgument(mcpToolMethod).ifPresent(typeArgument -> {
-                                    Class<?> methodReturnType = typeArgument instanceof Class<?> ? (Class<?>) typeArgument : null;
-                                    if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType)
-                                            && !ClassUtils.isSimpleValueType(methodReturnType)) {
-                                        toolBuilder.outputSchema(this.getJsonMapper(),
-                                                ToolJsonSchemaGenerator.generateFromClass(typeArgument.getClass())
-                                        );
-                                    }
-                                });
+                                    && methodReturnType != McpSchema.CallToolResult.class
+                                    && methodReturnType != Void.class
+                                    && methodReturnType != void.class
+                                    && !ClassUtils.isPrimitiveOrWrapper(methodReturnType)
+                                    && !ClassUtils.isSimpleValueType(methodReturnType)) {
+
+                                toolBuilder.outputSchema(
+                                        this.getJsonMapper(),
+                                        ToolJsonSchemaGenerator.generateFromType(mcpToolMethod.getGenericReturnType())
+                                );
                             }
 
-                            McpSchema.Tool tool = toolBuilder.build();
-                            ReturnMode returnMode = tool.outputSchema() != null ? ReturnMode.STRUCTURED
-                                    : ReactiveUtils.isReactiveReturnTypeOfVoid(mcpToolMethod) ? ReturnMode.VOID
-                                    : ReturnMode.TEXT;
+                            Tool tool = toolBuilder.build();
 
-                            AsyncMcpToolMethodCallback methodCallback = new AsyncMcpToolMethodCallback(
-                                    returnMode, mcpToolMethod, toolObject, this.doGetToolCallException());
+                            boolean useStructuredOutput = tool.outputSchema() != null;
+                            ReturnMode returnMode = useStructuredOutput ?
+                                    ReturnMode.STRUCTURED :
+                                    (methodReturnType == void.class ? ReturnMode.VOID : ReturnMode.TEXT);
 
-                            return AsyncToolSpec.builder()
+                            SyncStatelessMcpToolMethodCallback methodCallback = new SyncStatelessMcpToolMethodCallback(
+                                    returnMode, mcpToolMethod, toolObject, this.doGetToolCallException()
+                            );
+
+                            return SyncToolSpec.builder()
                                     .tool(tool)
                                     .callHandler(methodCallback)
                                     .build();

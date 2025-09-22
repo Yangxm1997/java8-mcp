@@ -5,9 +5,9 @@ import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
 import top.yangxm.ai.mcp.commons.util.ClassUtils;
 import top.yangxm.ai.mcp.commons.util.Utils;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures.AsyncToolSpec;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.annotation.McpTool;
-import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.AsyncMcpToolMethodCallback;
+import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.AsyncStatelessMcpToolMethodCallback;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.ReturnMode;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ReactiveUtils;
 import top.yangxm.ai.mcp.org.springaicommunity.mcp.method.tool.utils.ToolJsonSchemaGenerator;
@@ -20,10 +20,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
-public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
-    private static final Logger logger = LoggerFactoryHolder.getLogger(AsyncMcpToolProvider.class);
+public class AsyncStatelessMcpToolProvider extends AbstractMcpToolProvider {
+    private static final Logger logger = LoggerFactoryHolder.getLogger(AsyncStatelessMcpToolProvider.class);
 
-    public AsyncMcpToolProvider(List<Object> toolObjects) {
+    public AsyncStatelessMcpToolProvider(List<Object> toolObjects) {
         super(toolObjects);
     }
 
@@ -86,7 +86,7 @@ public class AsyncMcpToolProvider extends AbstractMcpToolProvider {
                                     : ReactiveUtils.isReactiveReturnTypeOfVoid(mcpToolMethod) ? ReturnMode.VOID
                                     : ReturnMode.TEXT;
 
-                            AsyncMcpToolMethodCallback methodCallback = new AsyncMcpToolMethodCallback(
+                            AsyncStatelessMcpToolMethodCallback methodCallback = new AsyncStatelessMcpToolMethodCallback(
                                     returnMode, mcpToolMethod, toolObject, this.doGetToolCallException());
 
                             return AsyncToolSpec.builder()

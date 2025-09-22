@@ -15,8 +15,8 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Content;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.ImageContent;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Role;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.Tool;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.SyncToolSpec;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerFeatures;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpSyncServerExchange;
 import top.yangxm.ai.mcp.org.springframework.ai.chat.model.ToolContext;
 import top.yangxm.ai.mcp.org.springframework.ai.tool.ToolCallback;
@@ -72,20 +72,38 @@ public final class McpToolUtils {
                 .collect(java.util.stream.Collectors.joining("_"));
     }
 
-    public static SyncToolSpec toSyncToolSpec(ToolCallback toolCallback, @Nullable MimeType mimeType) {
+    public static McpServerFeatures.SyncToolSpec toSyncToolSpec(ToolCallback toolCallback, @Nullable MimeType mimeType) {
         SharedSyncToolSpec sharedSpec = toSharedSyncToolSpec(toolCallback, mimeType);
-        return SyncToolSpec.builder()
+        return McpServerFeatures.SyncToolSpec.builder()
                 .tool(sharedSpec.tool())
                 .callHandler(sharedSpec.sharedCallHandler::apply)
                 .build();
     }
 
-    public static AsyncToolSpec toAsyncToolSpec(ToolCallback toolCallback, @Nullable MimeType mimeType) {
-        SyncToolSpec syncToolSpec = toSyncToolSpec(toolCallback, mimeType);
-        return AsyncToolSpec.builder()
+    public static McpStatelessServerFeatures.SyncToolSpec toSyncStatelessToolSpec(ToolCallback toolCallback, @Nullable MimeType mimeType) {
+        SharedSyncToolSpec sharedSpec = toSharedSyncToolSpec(toolCallback, mimeType);
+        return McpStatelessServerFeatures.SyncToolSpec.builder()
+                .tool(sharedSpec.tool())
+                .callHandler(sharedSpec.sharedCallHandler::apply)
+                .build();
+    }
+
+    public static McpServerFeatures.AsyncToolSpec toAsyncToolSpec(ToolCallback toolCallback, @Nullable MimeType mimeType) {
+        McpServerFeatures.SyncToolSpec syncToolSpec = toSyncToolSpec(toolCallback, mimeType);
+        return McpServerFeatures.AsyncToolSpec.builder()
                 .tool(syncToolSpec.tool())
                 .callHandler((exchange, map) -> Mono
                         .fromCallable(() -> syncToolSpec.callHandler().apply(new McpSyncServerExchange(exchange), map))
+                        .subscribeOn(Schedulers.boundedElastic()))
+                .build();
+    }
+
+    public static McpStatelessServerFeatures.AsyncToolSpec toAsyncStatelessToolSpec(ToolCallback toolCallback, @Nullable MimeType mimeType) {
+        McpStatelessServerFeatures.SyncToolSpec syncToolSpec = toSyncStatelessToolSpec(toolCallback, mimeType);
+        return McpStatelessServerFeatures.AsyncToolSpec.builder()
+                .tool(syncToolSpec.tool())
+                .callHandler((context, map) -> Mono
+                        .fromCallable(() -> syncToolSpec.callHandler().apply(context, map))
                         .subscribeOn(Schedulers.boundedElastic()))
                 .build();
     }
