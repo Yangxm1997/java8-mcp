@@ -42,7 +42,6 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.As
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncPromptSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncResourceSpec;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerFeatures.AsyncToolSpec;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStreamableServerSession.DefaultMcpStreamableServerSessionFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -840,8 +839,7 @@ public class McpAsyncServer {
             return this.rootsChangeConsumers(Arrays.asList(rootsChangeConsumers));
         }
 
-        public McpAsyncServer buildSingleSessionMcpServer(McpServerTransportProvider nonStreamTransportProvider) {
-            Assert.notNull(nonStreamTransportProvider, "nonStreamTransportProvider must not be null");
+        private void beforeBuild() {
             if (this.serverCapabilities == null) {
                 this.serverCapabilities = new ServerCapabilities(
                         null, // completions
@@ -851,7 +849,21 @@ public class McpAsyncServer {
                         !Maps.isEmpty(resourceSpecs) ? new ServerCapabilities.ResourceCapabilities(false, false) : null,
                         !Maps.isEmpty(toolSpecs) ? new ServerCapabilities.ToolCapabilities(false) : null);
             }
+        }
+
+        public McpAsyncServer buildSingleSessionMcpServer(McpServerTransportProvider nonStreamTransportProvider) {
+            Assert.notNull(nonStreamTransportProvider, "nonStreamTransportProvider must not be null");
+            this.beforeBuild();
             return new McpAsyncServer(nonStreamTransportProvider, jsonMapper,
+                    this.serverCapabilities, this.serverInfo, this.instructions,
+                    this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
+                    this.rootsChangeConsumers, this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);
+        }
+
+        public McpAsyncServer buildStreamableSessionMcpServer(McpStreamableServerTransportProvider streamableTransportProvider) {
+            Assert.notNull(streamableTransportProvider, "streamableTransportProvider must not be null");
+            this.beforeBuild();
+            return new McpAsyncServer(streamableTransportProvider, jsonMapper,
                     this.serverCapabilities, this.serverInfo, this.instructions,
                     this.toolSpecs, this.resourceSpecs, this.resourceTemplates, this.promptSpecs, this.completionSpecs,
                     this.rootsChangeConsumers, this.requestTimeout, this.uriTemplateManagerFactory, this.jsonSchemaValidator);

@@ -325,5 +325,11 @@ public class McpSyncServer {
             McpAsyncServer asyncServer = this.asyncBuilder.buildSingleSessionMcpServer(sessionTransportProvider);
             return new McpSyncServer(asyncServer, this.immediateExecution);
         }
+
+        public McpSyncServer buildStreamableSessionMcpServer(McpStreamableServerTransportProvider streamableTransportProvider) {
+            this.beforeBuild();
+            McpAsyncServer asyncServer = this.asyncBuilder.buildStreamableSessionMcpServer(streamableTransportProvider);
+            return new McpSyncServer(asyncServer, this.immediateExecution);
+        }
     }
 }

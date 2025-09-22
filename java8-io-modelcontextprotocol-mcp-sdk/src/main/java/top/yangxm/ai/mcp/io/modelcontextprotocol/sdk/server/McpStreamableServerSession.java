@@ -295,30 +295,4 @@ public class McpStreamableServerSession implements McpLoggableSession {
     public interface Factory {
         McpStreamableServerSessionInit startSession(InitializeRequest initRequest);
     }
-
-    final static class DefaultMcpStreamableServerSessionFactory implements McpStreamableServerSession.Factory {
-        private final Duration requestTimeout;
-        private final McpServerInitRequestHandler initRequestHandler;
-        private final Map<String, McpServerRequestHandler<?>> requestHandlers;
-        private final Map<String, McpServerNotificationHandler> notificationHandlers;
-
-        DefaultMcpStreamableServerSessionFactory(Duration requestTimeout,
-                                                 McpServerInitRequestHandler initRequestHandler,
-                                                 Map<String, McpServerRequestHandler<?>> requestHandlers,
-                                                 Map<String, McpServerNotificationHandler> notificationHandlers) {
-            this.requestTimeout = requestTimeout;
-            this.initRequestHandler = initRequestHandler;
-            this.requestHandlers = requestHandlers;
-            this.notificationHandlers = notificationHandlers;
-        }
-
-        @Override
-        public McpStreamableServerSessionInit startSession(InitializeRequest initRequest) {
-            return new McpStreamableServerSessionInit(
-                    new McpStreamableServerSession(UUID.randomUUID().toString(),
-                            initRequest.capabilities(), initRequest.clientInfo(),
-                            requestTimeout, requestHandlers, notificationHandlers),
-                    this.initRequestHandler.handle(initRequest));
-        }
-    }
 }
