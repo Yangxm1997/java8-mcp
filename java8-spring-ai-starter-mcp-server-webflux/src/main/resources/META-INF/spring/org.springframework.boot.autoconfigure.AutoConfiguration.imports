@@ -1,1 +1,3 @@
 top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerSseWebFluxAutoConfiguration
+top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerStatelessWebFluxAutoConfiguration
+top.yangxm.ai.mcp.org.springframework.ai.mcp.server.autoconfigure.McpServerStreamableHttpWebFluxAutoConfiguration
