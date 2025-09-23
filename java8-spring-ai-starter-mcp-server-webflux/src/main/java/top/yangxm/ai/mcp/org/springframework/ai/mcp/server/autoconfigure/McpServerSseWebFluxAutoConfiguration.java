@@ -21,7 +21,10 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 @EnableConfigurationProperties({McpServerSseProperties.class})
 @ConditionalOnClass({WebFluxSseServerTransportProvider.class})
 @ConditionalOnMissingBean(McpServerTransportProviderBase.class)
-@Conditional({McpServerStdioDisabledCondition.class, McpServerAutoConfiguration.EnabledSseServerCondition.class})
+@Conditional({
+        McpServerStdioDisabledCondition.class,
+        McpServerAutoConfiguration.EnabledSseServerCondition.class
+})
 public class McpServerSseWebFluxAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerSseWebFluxAutoConfiguration.class);
 

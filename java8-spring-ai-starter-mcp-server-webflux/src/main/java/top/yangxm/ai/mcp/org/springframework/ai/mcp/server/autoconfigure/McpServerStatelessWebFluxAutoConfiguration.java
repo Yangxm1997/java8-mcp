@@ -4,18 +4,46 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import top.yangxm.ai.mcp.commons.json.JsonMapper;
+import top.yangxm.ai.mcp.commons.logger.Logger;
+import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProviderBase;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxSseServerTransportProvider;
-import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxStatelessServerTransport;
+import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStatelessAutoConfiguration;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStdioDisabledCondition;
-import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerSseProperties;
+import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerStreamableHttpProperties;
 
 @SuppressWarnings("unused")
-@AutoConfiguration(before = McpServerAutoConfiguration.class)
-@EnableConfigurationProperties({McpServerSseProperties.class})
-@ConditionalOnClass({WebFluxSseServerTransportProvider.class})
+@AutoConfiguration(before = McpServerStatelessAutoConfiguration.class)
+@ConditionalOnClass({WebFluxStatelessServerTransport.class})
+@EnableConfigurationProperties({McpServerStreamableHttpProperties.class})
 @ConditionalOnMissingBean(McpServerTransportProviderBase.class)
-@Conditional({McpServerStdioDisabledCondition.class, McpServerAutoConfiguration.EnabledSseServerCondition.class})
+@Conditional({
+        McpServerStdioDisabledCondition.class,
+        McpServerStatelessAutoConfiguration.EnabledStatelessServerCondition.class
+})
 public class McpServerStatelessWebFluxAutoConfiguration {
+    private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerStatelessWebFluxAutoConfiguration.class);
+
+    public McpServerStatelessWebFluxAutoConfiguration(McpServerStreamableHttpProperties statelessProperties) {
+        Banner.printBanner(McpServerStatelessWebFluxAutoConfiguration.class);
+        logger.info(statelessProperties.toString());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public WebFluxStatelessServerTransport webFluxTransport(McpServerStreamableHttpProperties statelessProperties) {
+        return WebFluxStatelessServerTransport.builder()
+                .jsonMapper(JsonMapper.getDefault())
+                .messageEndpoint(statelessProperties.getMcpEndpoint())
+                .build();
+    }
+
+    @Bean
+    public RouterFunction<?> webfluxMcpRouterFunction(WebFluxStatelessServerTransport webFluxProvider) {
+        return webFluxProvider.getRouterFunction();
+    }
 }
