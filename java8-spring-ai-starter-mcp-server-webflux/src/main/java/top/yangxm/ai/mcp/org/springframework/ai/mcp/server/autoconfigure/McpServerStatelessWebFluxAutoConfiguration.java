@@ -11,6 +11,7 @@ import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerTransport;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxStatelessServerTransport;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStatelessAutoConfiguration;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStdioDisabledCondition;
@@ -19,6 +20,7 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 @SuppressWarnings("unused")
 @AutoConfiguration(before = McpServerStatelessAutoConfiguration.class)
 @ConditionalOnClass({McpSchema.class})
+@ConditionalOnMissingBean(McpStatelessServerTransport.class)
 @EnableConfigurationProperties({McpServerStatelessHttpProperties.class})
 @Conditional({
         McpServerStdioDisabledCondition.class,

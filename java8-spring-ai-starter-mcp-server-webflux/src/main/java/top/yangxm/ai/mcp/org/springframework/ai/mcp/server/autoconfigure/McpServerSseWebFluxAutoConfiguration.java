@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProviderBase;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxSseServerTransportProvider;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;
@@ -19,7 +20,7 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 @SuppressWarnings("unused")
 @AutoConfiguration(before = McpServerAutoConfiguration.class)
 @EnableConfigurationProperties({McpServerSseProperties.class})
-@ConditionalOnClass({WebFluxSseServerTransportProvider.class})
+@ConditionalOnClass({McpSchema.class})
 @ConditionalOnMissingBean(McpServerTransportProviderBase.class)
 @Conditional({
         McpServerStdioDisabledCondition.class,
