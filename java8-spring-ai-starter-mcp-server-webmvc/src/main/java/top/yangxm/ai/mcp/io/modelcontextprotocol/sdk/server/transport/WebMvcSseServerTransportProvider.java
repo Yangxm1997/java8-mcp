@@ -7,6 +7,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import top.yangxm.ai.mcp.commons.json.JsonException;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
@@ -22,7 +23,6 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransport;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProvider;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpTransportContextExtractor;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,10 +31,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @SuppressWarnings("unused")
 public class WebMvcSseServerTransportProvider implements McpServerTransportProvider {
     private static final Logger logger = LoggerFactoryHolder.getLogger(WebMvcSseServerTransportProvider.class);
-    public static final String DEFAULT_SSE_ENDPOINT = "/sse";
-    public static final String MESSAGE_EVENT_TYPE = "message";
-    public static final String ENDPOINT_EVENT_TYPE = "endpoint";
-
 
     private final JsonMapper jsonMapper;
     private final String baseUrl;
@@ -154,7 +150,7 @@ public class WebMvcSseServerTransportProvider implements McpServerTransportProvi
 
                 try {
                     sseBuilder.id(sessionId)
-                            .event(ENDPOINT_EVENT_TYPE)
+                            .event(McpTransportConst.ENDPOINT_EVENT_TYPE)
                             .data(this.baseUrl + this.messageEndpoint + "?sessionId=" + sessionId);
                 } catch (Exception e) {
                     logger.error("Failed to send initial endpoint event: {}", e.getMessage());
@@ -190,7 +186,7 @@ public class WebMvcSseServerTransportProvider implements McpServerTransportProvi
             JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
             session.handle(message).contextWrite(ctx -> ctx.put(McpTransportContext.KEY, transportContext)).block();
             return ServerResponse.ok().build();
-        } catch (IllegalArgumentException | IOException e) {
+        } catch (JsonException | IllegalArgumentException e) {
             logger.error("Failed to deserialize message: {}", e.getMessage());
             return ServerResponse.badRequest().body(McpError.of("Invalid message format"));
         } catch (Exception e) {
@@ -216,7 +212,7 @@ public class WebMvcSseServerTransportProvider implements McpServerTransportProvi
                 sseBuilderLock.lock();
                 try {
                     String jsonText = jsonMapper.writeValueAsString(message);
-                    sseBuilder.id(sessionId).event(MESSAGE_EVENT_TYPE).data(jsonText);
+                    sseBuilder.id(sessionId).event(McpTransportConst.MESSAGE_EVENT_TYPE).data(jsonText);
                     logger.debug("Message sent to session {}", sessionId);
                 } catch (Exception e) {
                     logger.error("Failed to send message to session {}: {}", sessionId, e.getMessage());
@@ -263,9 +259,9 @@ public class WebMvcSseServerTransportProvider implements McpServerTransportProvi
 
     public static class Builder {
         private JsonMapper jsonMapper;
-        private String baseUrl = "";
-        private String messageEndpoint;
-        private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
+        private String baseUrl = McpTransportConst.DEFAULT_BASE_URL;
+        private String messageEndpoint = McpTransportConst.DEFAULT_SSE_MESSAGE_ENDPOINT;
+        private String sseEndpoint = McpTransportConst.DEFAULT_SSE_ENDPOINT;
         private Duration keepAliveInterval;
         private McpTransportContextExtractor<ServerRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
 

@@ -1,6 +1,4 @@
 package top.yangxm.ai.mcp.commons.json;
-
-import top.yangxm.ai.mcp.commons.util.Assert;
 import top.yangxm.ai.mcp.commons.util.ClassUtils;
 
 import java.lang.reflect.Type;
@@ -8,34 +6,39 @@ import java.math.BigDecimal;
 
 @SuppressWarnings("unused")
 public interface JsonMapper {
-    <T> T readValue(String content, Class<T> type);
+    <T> T readValue(String content, Class<T> type) throws JsonException;
 
-    <T> T readValue(byte[] content, Class<T> type);
+    <T> T readValue(byte[] content, Class<T> type) throws JsonException;
 
-    <T> T readValue(String content, TypeRef<T> type);
+    <T> T readValue(String content, TypeRef<T> type) throws JsonException;
 
-    <T> T readValue(byte[] content, TypeRef<T> type);
+    <T> T readValue(byte[] content, TypeRef<T> type) throws JsonException;
 
-    <T> T readValue(String content, Type type);
+    <T> T readValue(String content, Type type) throws JsonException;
 
-    <T> T readValue(byte[] content, Type type);
+    <T> T readValue(byte[] content, Type type) throws JsonException;
 
-    <T> T convertValue(Object fromValue, Class<T> type);
+    <T> T convertValue(Object fromValue, Class<T> type) throws JsonException;
 
-    <T> T convertValue(Object fromValue, TypeRef<T> type);
+    <T> T convertValue(Object fromValue, TypeRef<T> type) throws JsonException;
 
-    String writeValueAsString(Object value);
+    String writeValueAsString(Object value) throws JsonException;
 
-    byte[] writeValueAsBytes(Object value);
+    byte[] writeValueAsBytes(Object value) throws JsonException;
 
     boolean isValidJson(String input);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    static Object toTypedObject(Object value, Class<?> type) {
-        Assert.notNull(value, "value cannot be null");
-        Assert.notNull(type, "type cannot be null");
+    static Object toTypedObject(Object value, Class<?> clazz) {
+        if (value == null) {
+            throw new JsonException("value cannot be null");
+        }
 
-        Class<?> javaType = ClassUtils.resolvePrimitiveIfNecessary(type);
+        if (clazz == null) {
+            throw new JsonException("clazz cannot be null");
+        }
+
+        Class<?> javaType = ClassUtils.resolvePrimitiveIfNecessary(clazz);
 
         if (javaType == String.class) {
             return value.toString();

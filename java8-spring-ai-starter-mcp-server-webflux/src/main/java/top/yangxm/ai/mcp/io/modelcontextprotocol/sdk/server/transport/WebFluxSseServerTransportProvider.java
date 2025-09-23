@@ -11,6 +11,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
+import top.yangxm.ai.mcp.commons.json.JsonException;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
@@ -144,7 +145,7 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                             .bodyValue(McpError.of(error.getMessage()));
                 });
-            } catch (Exception e) {
+            } catch (JsonException | IllegalArgumentException e) {
                 logger.error("Failed to deserialize message: {}", e.getMessage());
                 return ServerResponse.badRequest().bodyValue(McpError.of("Invalid message format"));
             }
@@ -252,7 +253,7 @@ public class WebFluxSseServerTransportProvider implements McpServerTransportProv
     public static class Builder {
         private JsonMapper jsonMapper = JsonMapper.getDefault();
         private String baseUrl = McpTransportConst.DEFAULT_BASE_URL;
-        private String messageEndpoint;
+        private String messageEndpoint = McpTransportConst.DEFAULT_SSE_MESSAGE_ENDPOINT;
         private String sseEndpoint = McpTransportConst.DEFAULT_SSE_ENDPOINT;
         private McpTransportContextExtractor<ServerRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
         private Duration keepAliveInterval;

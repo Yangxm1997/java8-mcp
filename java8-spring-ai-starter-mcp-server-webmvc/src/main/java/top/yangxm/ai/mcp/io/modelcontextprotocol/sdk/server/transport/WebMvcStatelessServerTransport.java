@@ -2,10 +2,10 @@ package top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.RouterFunctions;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 import reactor.core.publisher.Mono;
 import top.yangxm.ai.mcp.commons.json.JsonException;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
@@ -18,6 +18,7 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCMessage;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCNotification;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCRequest;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema.JSONRPCResponse;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerHandler;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpStatelessServerTransport;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpTransportContextExtractor;
@@ -25,18 +26,18 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpTransportContextE
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class WebFluxStatelessServerTransport implements McpStatelessServerTransport {
-    private static final Logger logger = LoggerFactoryHolder.getLogger(WebFluxStatelessServerTransport.class);
+public class WebMvcStatelessServerTransport implements McpStatelessServerTransport {
+    private static final Logger logger = LoggerFactoryHolder.getLogger(WebMvcStatelessServerTransport.class);
 
     private final JsonMapper jsonMapper;
     private final String messageEndpoint;
-    private final RouterFunction<?> routerFunction;
+    private final RouterFunction<ServerResponse> routerFunction;
     private final McpTransportContextExtractor<ServerRequest> contextExtractor;
     private McpStatelessServerHandler mcpHandler;
     private volatile boolean isClosing = false;
 
-    private WebFluxStatelessServerTransport(JsonMapper jsonMapper, String messageEndpoint,
-                                            McpTransportContextExtractor<ServerRequest> contextExtractor) {
+    private WebMvcStatelessServerTransport(JsonMapper jsonMapper, String messageEndpoint,
+                                           McpTransportContextExtractor<ServerRequest> contextExtractor) {
         Assert.notNull(jsonMapper, "jsonMapper must not be null");
         Assert.notNull(messageEndpoint, "messageEndpoint must not be null");
         Assert.notNull(contextExtractor, "contextExtractor must not be null");
@@ -49,7 +50,7 @@ public class WebFluxStatelessServerTransport implements McpStatelessServerTransp
                 .POST(this.messageEndpoint, this::handlePost)
                 .build();
 
-        logger.debug("WebFlux STATELESS transport provider initialized with messageEndpoint: {}", messageEndpoint);
+        logger.debug("WebMVC STATELESS transport provider initialized with messageEndpoint: {}", messageEndpoint);
     }
 
     public String messageEndpoint() {
@@ -66,15 +67,14 @@ public class WebFluxStatelessServerTransport implements McpStatelessServerTransp
         return Mono.fromRunnable(() -> this.isClosing = true);
     }
 
-    private Mono<ServerResponse> handleGet(ServerRequest request) {
+    private ServerResponse handleGet(ServerRequest request) {
         return ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
 
-    private Mono<ServerResponse> handlePost(ServerRequest request) {
+    private ServerResponse handlePost(ServerRequest request) {
         if (isClosing) {
-            return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).bodyValue("Server is shutting down");
+            return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).body("Server is shutting down");
         }
-
         McpTransportContext transportContext = this.contextExtractor.extract(request);
 
         List<MediaType> acceptHeaders = request.headers().asHttpHeaders().getAccept();
@@ -83,38 +83,52 @@ public class WebFluxStatelessServerTransport implements McpStatelessServerTransp
             return ServerResponse.badRequest().build();
         }
 
-        return request.bodyToMono(String.class).<ServerResponse>flatMap(body -> {
-            try {
-                JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
-                if (message instanceof JSONRPCRequest) {
+        try {
+            String body = request.body(String.class);
+            JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
+            if (message instanceof JSONRPCRequest) {
+                try {
                     JSONRPCRequest jsonrpcRequest = (JSONRPCRequest) message;
-                    return this.mcpHandler.handleRequest(transportContext, jsonrpcRequest)
-                            .flatMap(jsonrpcResponse -> {
-                                try {
-                                    String json = jsonMapper.writeValueAsString(jsonrpcResponse);
-                                    return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(json);
-                                } catch (JsonException e) {
-                                    logger.error("Failed to serialize response: {}", e.getMessage());
-                                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                            .bodyValue(McpError.of("Failed to serialize response"));
-                                }
-                            });
-                } else if (message instanceof JSONRPCNotification) {
-                    JSONRPCNotification jsonrpcNotification = (JSONRPCNotification) message;
-                    return this.mcpHandler.handleNotification(transportContext, jsonrpcNotification)
-                            .then(ServerResponse.accepted().build());
-                } else {
-                    return ServerResponse.badRequest()
-                            .bodyValue(McpError.of("The server accepts either requests or notifications"));
+                    JSONRPCResponse jsonrpcResponse = this.mcpHandler
+                            .handleRequest(transportContext, jsonrpcRequest)
+                            .contextWrite(ctx -> ctx.put(McpTransportContext.KEY, transportContext))
+                            .block();
+                    if (jsonrpcResponse == null) {
+                        throw new RuntimeException("Response is null");
+                    }
+                    return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(jsonrpcResponse);
+                } catch (Exception e) {
+                    logger.error("Failed to handle request: {}", e.getMessage());
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(McpError.of("Failed to handle request: " + e.getMessage()));
                 }
-            } catch (JsonException | IllegalArgumentException e) {
-                logger.error("Failed to deserialize message: {}", e.getMessage());
-                return ServerResponse.badRequest().bodyValue(McpError.of("Invalid message format"));
+            } else if (message instanceof JSONRPCNotification) {
+                try {
+                    JSONRPCNotification jsonrpcNotification = (JSONRPCNotification) message;
+                    this.mcpHandler.handleNotification(transportContext, jsonrpcNotification)
+                            .contextWrite(ctx -> ctx.put(McpTransportContext.KEY, transportContext))
+                            .block();
+                    return ServerResponse.accepted().build();
+                } catch (Exception e) {
+                    logger.error("Failed to handle notification: {}", e.getMessage());
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(McpError.of("Failed to handle notification: " + e.getMessage()));
+                }
+            } else {
+                return ServerResponse.badRequest()
+                        .body(McpError.of("The server accepts either requests or notifications"));
             }
-        }).contextWrite(ctx -> ctx.put(McpTransportContext.KEY, transportContext));
+        } catch (JsonException | IllegalArgumentException e) {
+            logger.error("Failed to deserialize message: {}", e.getMessage());
+            return ServerResponse.badRequest().body(McpError.of("Invalid message format"));
+        } catch (Exception e) {
+            logger.error("Unexpected error handling message: {}", e.getMessage());
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(McpError.of("Unexpected error: " + e.getMessage()));
+        }
     }
 
-    public RouterFunction<?> getRouterFunction() {
+    public RouterFunction<ServerResponse> getRouterFunction() {
         return this.routerFunction;
     }
 
@@ -148,9 +162,9 @@ public class WebFluxStatelessServerTransport implements McpStatelessServerTransp
             return this;
         }
 
-        public WebFluxStatelessServerTransport build() {
+        public WebMvcStatelessServerTransport build() {
             Assert.notNull(this.messageEndpoint, "Message endpoint must be set");
-            return new WebFluxStatelessServerTransport(jsonMapper, messageEndpoint, contextExtractor);
+            return new WebMvcStatelessServerTransport(jsonMapper, messageEndpoint, contextExtractor);
         }
     }
 }

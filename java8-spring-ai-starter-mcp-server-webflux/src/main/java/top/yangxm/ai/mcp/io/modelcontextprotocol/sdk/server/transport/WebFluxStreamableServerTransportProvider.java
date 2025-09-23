@@ -12,6 +12,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
+import top.yangxm.ai.mcp.commons.json.JsonException;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.json.TypeRef;
 import top.yangxm.ai.mcp.commons.logger.Logger;
@@ -80,12 +81,16 @@ public class WebFluxStreamableServerTransportProvider implements McpStreamableSe
         } else {
             this.keepAliveScheduler = null;
         }
-        logger.debug("WebFlux STREAMABLE transport provider initialized with messageEndpoint: {}, keepAliveInterval: {}",
-                messageEndpoint, keepAliveInterval);
+        logger.debug("WebFlux STREAMABLE transport provider initialized with messageEndpoint: {}, keepAliveInterval: {}, disallowDelete: {}",
+                messageEndpoint, keepAliveInterval, disallowDelete);
     }
 
     public String messageEndpoint() {
         return messageEndpoint;
+    }
+
+    public boolean isDisallowDelete() {
+        return disallowDelete;
     }
 
     private Mono<ServerResponse> handleGet(ServerRequest request) {
@@ -115,9 +120,7 @@ public class WebFluxStreamableServerTransportProvider implements McpStreamableSe
                 return ServerResponse.ok()
                         .contentType(MediaType.TEXT_EVENT_STREAM)
                         .body(session.replay(lastId)
-                                .contextWrite(ctx ->
-                                        ctx.put(McpTransportContext.KEY, transportContext)), ServerSentEvent.class
-                        );
+                                .contextWrite(ctx -> ctx.put(McpTransportContext.KEY, transportContext)), ServerSentEvent.class);
             }
 
             return ServerResponse.ok()
@@ -205,7 +208,7 @@ public class WebFluxStreamableServerTransportProvider implements McpStreamableSe
                         } else {
                             return ServerResponse.badRequest().bodyValue(McpError.of("Unknown message type"));
                         }
-                    } catch (Exception e) {
+                    } catch (JsonException | IllegalArgumentException e) {
                         logger.error("Failed to deserialize message: {}", e.getMessage());
                         return ServerResponse.badRequest().bodyValue(McpError.of("Invalid message format"));
                     }
@@ -347,7 +350,7 @@ public class WebFluxStreamableServerTransportProvider implements McpStreamableSe
 
     public static class Builder {
         private JsonMapper jsonMapper = JsonMapper.getDefault();
-        private String messageEndpoint = McpTransportConst.DEFAULT_STREAMABLE_ENDPOINT;
+        private String messageEndpoint = McpTransportConst.DEFAULT_STREAMABLE_MESSAGE_ENDPOINT;
         private McpTransportContextExtractor<ServerRequest> contextExtractor = (serverRequest) -> McpTransportContext.EMPTY;
         private boolean disallowDelete;
         private Duration keepAliveInterval;
