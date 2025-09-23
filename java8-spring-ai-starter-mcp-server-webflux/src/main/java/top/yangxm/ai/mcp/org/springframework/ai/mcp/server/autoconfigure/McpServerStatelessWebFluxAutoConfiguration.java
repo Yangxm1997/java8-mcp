@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import top.yangxm.ai.mcp.commons.json.JsonMapper;
 import top.yangxm.ai.mcp.commons.logger.Logger;
 import top.yangxm.ai.mcp.commons.logger.LoggerFactoryHolder;
-import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.McpServerTransportProviderBase;
+import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxStatelessServerTransport;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStatelessAutoConfiguration;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStdioDisabledCondition;
@@ -18,9 +18,8 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 
 @SuppressWarnings("unused")
 @AutoConfiguration(before = McpServerStatelessAutoConfiguration.class)
-@ConditionalOnClass({WebFluxStatelessServerTransport.class})
+@ConditionalOnClass({McpSchema.class})
 @EnableConfigurationProperties({McpServerStreamableHttpProperties.class})
-@ConditionalOnMissingBean(McpServerTransportProviderBase.class)
 @Conditional({
         McpServerStdioDisabledCondition.class,
         McpServerStatelessAutoConfiguration.EnabledStatelessServerCondition.class
