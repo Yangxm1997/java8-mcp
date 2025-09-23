@@ -14,12 +14,12 @@ import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.schema.McpSchema;
 import top.yangxm.ai.mcp.io.modelcontextprotocol.sdk.server.transport.WebFluxStatelessServerTransport;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStatelessAutoConfiguration;
 import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.McpServerStdioDisabledCondition;
-import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerStreamableHttpProperties;
+import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerStatelessHttpProperties;
 
 @SuppressWarnings("unused")
 @AutoConfiguration(before = McpServerStatelessAutoConfiguration.class)
 @ConditionalOnClass({McpSchema.class})
-@EnableConfigurationProperties({McpServerStreamableHttpProperties.class})
+@EnableConfigurationProperties({McpServerStatelessHttpProperties.class})
 @Conditional({
         McpServerStdioDisabledCondition.class,
         McpServerStatelessAutoConfiguration.EnabledStatelessServerCondition.class
@@ -27,14 +27,14 @@ import top.yangxm.ai.mcp.org.springframework.ai.mcp.server.common.autoconfigure.
 public class McpServerStatelessWebFluxAutoConfiguration {
     private static final Logger logger = LoggerFactoryHolder.getLogger(McpServerStatelessWebFluxAutoConfiguration.class);
 
-    public McpServerStatelessWebFluxAutoConfiguration(McpServerStreamableHttpProperties statelessProperties) {
+    public McpServerStatelessWebFluxAutoConfiguration(McpServerStatelessHttpProperties statelessProperties) {
         Banner.printBanner(McpServerStatelessWebFluxAutoConfiguration.class);
         logger.info(statelessProperties.toString());
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public WebFluxStatelessServerTransport webFluxTransport(McpServerStreamableHttpProperties statelessProperties) {
+    public WebFluxStatelessServerTransport webFluxTransport(McpServerStatelessHttpProperties statelessProperties) {
         return WebFluxStatelessServerTransport.builder()
                 .jsonMapper(JsonMapper.getDefault())
                 .messageEndpoint(statelessProperties.getMcpEndpoint())

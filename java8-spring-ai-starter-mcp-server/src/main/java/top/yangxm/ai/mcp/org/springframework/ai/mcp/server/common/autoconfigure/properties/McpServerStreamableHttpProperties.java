@@ -38,4 +38,13 @@ public class McpServerStreamableHttpProperties {
     public void setDisallowDelete(boolean disallowDelete) {
         this.disallowDelete = disallowDelete;
     }
+
+    @Override
+    public String toString() {
+        return "McpServerStreamableHttpProperties{" +
+                "mcpEndpoint='" + mcpEndpoint + '\'' +
+                ", keepAliveInterval=" + keepAliveInterval +
+                ", disallowDelete=" + disallowDelete +
+                '}';
+    }
 }
